@@ -33,6 +33,7 @@ int main(int argc, char *argv[])
 {
 	// Define a couple of variables
 	SoLoud::Soloud soloud;  // SoLoud engine core
+	
 	SoLoud::Speech speech;  // A sound source (speech, in this case)
 
 	// Configure sound source
