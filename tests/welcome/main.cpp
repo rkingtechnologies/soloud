@@ -91,7 +91,4 @@ int main() {
 
   // Clean up SoLoud
   soloud.deinit();
-
-  // All done.
-  return 0;
 }

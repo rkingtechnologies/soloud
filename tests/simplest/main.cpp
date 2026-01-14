@@ -22,39 +22,36 @@ freely, subject to the following restrictions:
    distribution.
 */
 
-#include <stdlib.h>
+#include <print>
 
 #include "soloud.h"
 #include "soloud_speech.h"
 #include "soloud_thread.h"
 
-// Entry point
-int main(int argc, char *argv[])
-{
-	// Define a couple of variables
-	SoLoud::Soloud soloud;  // SoLoud engine core
-	
-	SoLoud::Speech speech;  // A sound source (speech, in this case)
+int main() {
+  SoLoud::Soloud soloud;  // SoLoud engine core
+  SoLoud::Speech speech;  // A sound source (speech, in this case)
 
-	// Configure sound source
-	speech.setText("1 2 3   1 2 3   Hello world. Welcome to So-Loud.");
+  // Configure sound source
+  speech.setText("1 2 3   1 2 3   Hello world. Welcome to So-Loud.");
 
-	// initialize SoLoud.
-	soloud.init();
+  // Initialize SoLoud
+  const auto init_res = soloud.init();
 
-	// Play the sound source (we could do this several times if we wanted)
-	soloud.play(speech);
+  if (init_res != SoLoud::SO_NO_ERROR) {
+    std::println("Failed to initialize SoLoud, error: {}", init_res);
+    return 1;
+  }
 
-	// Wait until sounds have finished
-	while (soloud.getActiveVoiceCount() > 0)
-	{
-		// Still going, sleep for a bit
-		SoLoud::Thread::sleep(100);
-	}
+  // Play the sound source (we could do this several times if we wanted)
+  soloud.play(speech);
 
-	// Clean up SoLoud
-	soloud.deinit();
+  // Wait until sounds have finished
+  while (soloud.getActiveVoiceCount() > 0) {
+    // Still going, sleep for a bit
+    SoLoud::Thread::sleep(100);
+  }
 
-	// All done.
-	return 0;
+  // Clean up SoLoud
+  soloud.deinit();
 }
