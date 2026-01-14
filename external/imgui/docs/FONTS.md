@@ -2,17 +2,10 @@ _(You may browse this at https://github.com/ocornut/imgui/blob/master/docs/FONTS
 
 ## Dear ImGui: Using Fonts
 
-The code in Dear ImGui embeds a copy of [ProggyClean.ttf](https://github.com/bluescan/proggyfonts) by Tristan Grimmer,
-a 13 pixels high, pixel-perfect font used by default. ProggyClean does not scale very nicely.
+The code in imgui.cpp embeds a copy of [ProggyClean.ttf](http://proggyfonts.net) (by Tristan Grimmer),
+a 13 pixels high, pixel-perfect font used by default. We embed it in the source code so you can use Dear ImGui without any file system access. ProggyClean does not scale smoothly, therefore it is recommended that you load your own file when using Dear ImGui in an application aiming to look nice and wanting to support multiple resolutions.
 
-The code in Dear ImGui embeds a partial copy of [ProggyVector.ttf](https://github.com/bluescan/proggyfonts) by Tristan Grimmer and Source Foundry Authors,
-a font mimicking ProggyClean which does scale nicely.
-
-We embed fonts in the code so you can use Dear ImGui without any file system access.
-If you use either of those fonts in your shipping product you should include their license as part of your software (see below for links).
-If you don't use them you can set `IMGUI_DISABLE_DEFAULT_FONT` in your [imconfig.h](https://github.com/ocornut/imgui/blob/master/imconfig.h) file to ship binaries without the fonts and save about ~26 KB.
-
-You may also load external .TTF/.OTF files, see instructions on this page.
+You may also load external .TTF/.OTF files.
 In the [misc/fonts/](https://github.com/ocornut/imgui/tree/master/misc/fonts) folder you can find a few suggested fonts, provided as a convenience.
 
 **Also read the FAQ:** https://www.dearimgui.com/faq (there is a Fonts section!)
@@ -96,10 +89,7 @@ See [#8465](https://github.com/ocornut/imgui/issues/8465) for more details.
 
 ## How should I handle DPI in my application?
 
-Since 1.92, with an updated backend, you can set `style.FontScaleDpi = your_content_scale;` to scale all fonts.
-<BR>You can call  `style.ScaleAllSizes(xxx)` at init time or every frame at the beginning of your main loop to scale sizes/paddings.
-<BR>Since 1.92, with an updated backend, macOS style pixel/backing style scale is automatically handled.
-<BR>See [FAQ entry](https://github.com/ocornut/imgui/blob/master/docs/FAQ.md#q-how-should-i-handle-dpi-in-my-application) for more details.
+See [FAQ entry](https://github.com/ocornut/imgui/blob/master/docs/FAQ.md#q-how-should-i-handle-dpi-in-my-application).
 
 ##### [Return to Index](#index)
 
@@ -107,22 +97,10 @@ Since 1.92, with an updated backend, you can set `style.FontScaleDpi = your_cont
 
 ## Fonts Loading Instructions
 
-**Select base size**
-```cpp
-ImGuiStyle& style = ImGui::GetStyle();
-style.FontSizeBase = 20.0f;
-```
-
 **Load default font:**
 ```cpp
 ImGuiIO& io = ImGui::GetIO();
-io.Fonts->AddFontDefault();        // Load embedded font (auto-selected).
-```
-```cpp
-io.Fonts->AddFontDefaultVector();  // Load embedded scalable font.
-```
-```cpp
-io.Fonts->AddFontDefaultBitmap();  // Load embedded bitmap font (legacy).
+io.Fonts->AddFontDefault();
 ```
 
 **Load .TTF/.OTF file with:**
@@ -224,7 +202,7 @@ if (ImGui::Button(u8"ロード"))
 {
     // do stuff
 }
-ImGui::InputText("string", buf, IM_COUNTOF(buf));
+ImGui::InputText("string", buf, IM_ARRAYSIZE(buf));
 ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
 ```
 
@@ -250,7 +228,6 @@ ImFontConfig font_cfg;
 font_cfg.FontDataOwnedByAtlas = false;
 ImFont* font = io.Fonts->AddFontFromMemoryTTF(data, data_size, size_pixels, &font_cfg);
 ```
-IMPORTANT: Since 1.92, when using `FontDataOwnedByAtlas = false`, font data needs to available until `atlas->RemoveFont()`, or more typically until a shutdown of the owning context or font atlas. It was not immediately noticeable in 1.92.0 due to a bug in handling `FontDataOwnedByAtlas = false`, which was fixed in 1.92.6.
 
 ##### [Return to Index](#index)
 
@@ -461,7 +438,7 @@ unsigned char* tex_pixels = nullptr;
 int tex_width, tex_height;
 io.Fonts->GetTexDataAsRGBA32(&tex_pixels, &tex_width, &tex_height);
 
-for (int rect_n = 0; rect_n < IM_COUNTOF(rect_ids); rect_n++)
+for (int rect_n = 0; rect_n < IM_ARRAYSIZE(rect_ids); rect_n++)
     if (const ImTextureRect* rect = io.Fonts->GetCustomRect(rect_ids[rect_n]))
     {
         // Fill the custom rectangle with red pixels (in reality you would draw/copy your bitmap data here!)
@@ -579,16 +556,12 @@ Some fonts files are available in the `misc/fonts/` folder:
 **ProggyClean.ttf**, by Tristan Grimmer
 <br>MIT License
 <br>(recommended loading setting: Size = 13.0, GlyphOffset.y = +1)
-<br>https://github.com/bluescan/proggyfonts
+<br>http://www.proggyfonts.net/
 
 **ProggyTiny.ttf**, by Tristan Grimmer
 <br>MIT License
 <br>(recommended loading setting: Size = 10.0, GlyphOffset.y = +1)
-<br>https://github.com/bluescan/proggyfonts
-
-**ProggyVector.ttf**, by Tristan Grimmer, Source Foundry Authors
-<BR>MIT License + Bitstream Vera License
-<BR>https://github.com/bluescan/proggyfonts
+<br>http://www.proggyfonts.net/
 
 **Karla-Regular.ttf**, by Jonathan Pinhorn
 <br>SIL OPEN FONT LICENSE Version 1.1
@@ -616,8 +589,12 @@ Some fonts files are available in the `misc/fonts/` folder:
 
 <img width="1172" height="715" alt="image" src="https://github.com/user-attachments/assets/c9702534-4877-41c9-ae0d-252933c26ced" />
 
-- Proggy Fonts, by Tristan Grimmer https://github.com/bluescan/proggyfonts
-- Sweet16, Sweet16 Mono, by Martin Sedlak (Latin + Supplemental + Extended A) https://github.com/kmar/Sweet16Font
+Pixel Perfect:
+- Proggy Fonts, by Tristan Grimmer http://www.proggyfonts.net or http://upperboundsinteractive.com/fonts.php
+- Sweet16, Sweet16 Mono, by Martin Sedlak (Latin + Supplemental + Extended A) https://github.com/kmar/Sweet16Font (also include an .inl file to use directly in dear imgui.)
+
+Regular:
+- ProggyVector if you want the old school Dear ImGui font to scale: https://github.com/bluescan/proggyfonts
 - Google Noto Mono Fonts: https://www.google.com/get/noto/
 - Typefaces for source code beautification: https://github.com/chrissimpkins/codeface
 - Programmation fonts: http://s9w.github.io/font_compare/

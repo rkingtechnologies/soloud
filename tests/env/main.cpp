@@ -22,6 +22,7 @@ freely, subject to the following restrictions:
    distribution.
 */
 
+
 #include <stdlib.h>
 #include <math.h>
 #include <stdio.h>
@@ -31,7 +32,6 @@ freely, subject to the following restrictions:
 #include "soloud.h"
 #include "soloud_wav.h"
 #include "soloud_biquadresonantfilter.h"
-
 
 SoLoud::Soloud gSoloud;			// SoLoud engine core
 SoLoud::BiquadResonantFilter gLPFilter;

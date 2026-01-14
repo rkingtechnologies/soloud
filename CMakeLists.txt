@@ -93,5 +93,6 @@ set(SOLOUD_TEST_DIR "${SOLOUD_SOURCE_DIR}/tests")
 
 if(SOLOUD_BUILD_TESTS AND EXISTS ${SOLOUD_TEST_DIR})
   enable_testing()
+  include(cmake/tests_common.cmake)
   add_subdirectory(${SOLOUD_TEST_DIR})
 endif()

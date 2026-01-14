@@ -555,8 +555,7 @@ void _glfwTerminateEGL(void)
         _glfw.egl.display = EGL_NO_DISPLAY;
     }
 
-    // Free modules only after all wayland termination functions are called
-    if (_glfw.egl.handle && _glfw.platform.platformID != GLFW_PLATFORM_WAYLAND)
+    if (_glfw.egl.handle)
     {
         _glfwPlatformFreeModule(_glfw.egl.handle);
         _glfw.egl.handle = NULL;

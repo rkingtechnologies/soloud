@@ -6,6 +6,7 @@
 //  [X] Renderer: Large meshes support (64k+ vertices) even with 16-bit indices (ImGuiBackendFlags_RendererHasVtxOffset).
 //  [X] Renderer: Texture updates support for dynamic font atlas (ImGuiBackendFlags_RendererHasTextures).
 //  [X] Renderer: Expose selected render state for draw callbacks to use. Access in '(ImGui_ImplXXXX_RenderState*)GetPlatformIO().Renderer_RenderState'.
+//  [x] Renderer: Multi-viewport / platform windows. With issues (flickering when creating a new viewport).
 
 // The aim of imgui_impl_vulkan.h/.cpp is to be usable in your engine without any modification.
 // IF YOU FEEL YOU NEED TO MAKE ANY CHANGE TO THIS CODE, please share them and your feedback at https://github.com/ocornut/imgui/
@@ -41,14 +42,9 @@
 // If you have no idea what this is, leave it alone!
 //#define IMGUI_IMPL_VULKAN_NO_PROTOTYPES
 
-// [Configuration] Convenience support for Volk
+// Convenience support for Volk
 // (you can also technically use IMGUI_IMPL_VULKAN_NO_PROTOTYPES + wrap Volk via ImGui_ImplVulkan_LoadFunctions().)
-// (When using Volk from directory outside your include directories list you can specify full path to the volk.h header,
-//  for example when using Volk from VulkanSDK and using include_directories(${Vulkan_INCLUDE_DIRS})' from 'find_package(Vulkan REQUIRED)')
 //#define IMGUI_IMPL_VULKAN_USE_VOLK
-//#define IMGUI_IMPL_VULKAN_VOLK_FILENAME    <Volk/volk.h>
-//#define IMGUI_IMPL_VULKAN_VOLK_FILENAME    <volk.h>       // Default
-// Reminder: make those changes in your imconfig.h file, not here!
 
 #if defined(IMGUI_IMPL_VULKAN_NO_PROTOTYPES) && !defined(VK_NO_PROTOTYPES)
 #define VK_NO_PROTOTYPES
@@ -59,11 +55,7 @@
 
 // Vulkan includes
 #ifdef IMGUI_IMPL_VULKAN_USE_VOLK
-#ifdef IMGUI_IMPL_VULKAN_VOLK_FILENAME
-#include IMGUI_IMPL_VULKAN_VOLK_FILENAME
-#else
 #include <volk.h>
-#endif
 #else
 #include <vulkan/vulkan.h>
 #endif
@@ -77,12 +69,18 @@
 // Specify settings to create pipeline and swapchain
 struct ImGui_ImplVulkan_PipelineInfo
 {
+    // For Main viewport only
     VkRenderPass                    RenderPass;                     // Ignored if using dynamic rendering
+
+    // For Main and Secondary viewports
     uint32_t                        Subpass;                        //
     VkSampleCountFlagBits           MSAASamples = {};               // 0 defaults to VK_SAMPLE_COUNT_1_BIT
 #ifdef IMGUI_IMPL_VULKAN_HAS_DYNAMIC_RENDERING
     VkPipelineRenderingCreateInfoKHR PipelineRenderingCreateInfo;   // Optional, valid if .sType == VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR
 #endif
+
+    // For Secondary viewports only (created/managed by backend)
+    VkImageUsageFlags               SwapChainImageUsage;            // Extra flags for vkCreateSwapchainKHR() calls for secondary viewports. We automatically add VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT. You can add e.g. VK_IMAGE_USAGE_TRANSFER_SRC_BIT if you need to capture from viewports.
 };
 
 // Initialization data, for ImGui_ImplVulkan_Init()
@@ -92,7 +90,7 @@ struct ImGui_ImplVulkan_PipelineInfo
 //     and must contain a pool size large enough to hold a small number of VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER descriptors.
 //   - As an convenience, by setting DescriptorPoolSize > 0 the backend will create one for you.
 // - About dynamic rendering:
-//   - When using dynamic rendering, set UseDynamicRendering=true + fill PipelineInfoMain.PipelineRenderingCreateInfo structure.
+//   - When using dynamic rendering, set UseDynamicRendering=true and fill PipelineRenderingCreateInfo structure.
 struct ImGui_ImplVulkan_InitInfo
 {
     uint32_t                        ApiVersion;                 // Fill with API version of Instance, e.g. VK_API_VERSION_1_3 or your value of VkApplicationInfo::apiVersion. May be lower than header version (VK_HEADER_VERSION_COMPLETE)
@@ -109,13 +107,14 @@ struct ImGui_ImplVulkan_InitInfo
 
     // Pipeline
     ImGui_ImplVulkan_PipelineInfo   PipelineInfoMain;           // Infos for Main Viewport (created by app/user)
+    ImGui_ImplVulkan_PipelineInfo   PipelineInfoForViewports;   // Infos for Secondary Viewports (created by backend)
     //VkRenderPass                  RenderPass;                 // --> Since 2025/09/26: set 'PipelineInfoMain.RenderPass' instead
     //uint32_t                      Subpass;                    // --> Since 2025/09/26: set 'PipelineInfoMain.Subpass' instead
     //VkSampleCountFlagBits         MSAASamples;                // --> Since 2025/09/26: set 'PipelineInfoMain.MSAASamples' instead
     //VkPipelineRenderingCreateInfoKHR PipelineRenderingCreateInfo; // Since 2025/09/26: set 'PipelineInfoMain.PipelineRenderingCreateInfo' instead
 
     // (Optional) Dynamic Rendering
-    // Need to explicitly enable VK_KHR_dynamic_rendering extension to use this, even for Vulkan 1.3 + setup PipelineInfoMain.PipelineRenderingCreateInfo.
+    // Need to explicitly enable VK_KHR_dynamic_rendering extension to use this, even for Vulkan 1.3 + setup PipelineInfoMain.PipelineRenderingCreateInfo and PipelineInfoViewports.PipelineRenderingCreateInfo.
     bool                            UseDynamicRendering;
 
     // (Optional) Allocation, Debugging
@@ -198,6 +197,7 @@ IMGUI_IMPL_API VkPresentModeKHR     ImGui_ImplVulkanH_SelectPresentMode(VkPhysic
 IMGUI_IMPL_API VkPhysicalDevice     ImGui_ImplVulkanH_SelectPhysicalDevice(VkInstance instance);
 IMGUI_IMPL_API uint32_t             ImGui_ImplVulkanH_SelectQueueFamilyIndex(VkPhysicalDevice physical_device);
 IMGUI_IMPL_API int                  ImGui_ImplVulkanH_GetMinImageCountFromPresentMode(VkPresentModeKHR present_mode);
+IMGUI_IMPL_API ImGui_ImplVulkanH_Window* ImGui_ImplVulkanH_GetWindowDataFromViewport(ImGuiViewport* viewport); // Access to Vulkan objects associated with a viewport (e.g to export a screenshot)
 
 // Helper structure to hold the data needed by one rendering frame
 // (Used by example's main.cpp. Used by multi-viewport features. Probably NOT used by your own engine/app.)
@@ -222,43 +222,28 @@ struct ImGui_ImplVulkanH_FrameSemaphores
 // (Used by example's main.cpp. Used by multi-viewport features. Probably NOT used by your own engine/app.)
 struct ImGui_ImplVulkanH_Window
 {
-    // Input
-    bool                    UseDynamicRendering;
-    VkSurfaceFormatKHR      SurfaceFormat;
-    VkPresentModeKHR        PresentMode;
-    VkAttachmentDescription AttachmentDesc;     // RenderPass creation: main attachment description.
-    VkClearValue            ClearValue;         // RenderPass creation: clear value when using VK_ATTACHMENT_LOAD_OP_CLEAR.
-
-    // Internal
-    int                     Width;              // Generally same as passed to ImGui_ImplVulkanH_CreateOrResizeWindow()
-    int                     Height;
-    VkSwapchainKHR          Swapchain;
-    VkSurfaceKHR            Surface;
-    VkRenderPass            RenderPass;
-    VkPipeline              Pipeline;           // The window pipeline may uses a different VkRenderPass than the one passed in ImGui_ImplVulkan_InitInfo
-    uint32_t                FrameIndex;         // Current frame being rendered to (0 <= FrameIndex < FrameInFlightCount)
-    uint32_t                ImageCount;         // Number of simultaneous in-flight frames (returned by vkGetSwapchainImagesKHR, usually derived from min_image_count)
-    uint32_t                SemaphoreCount;     // Number of simultaneous in-flight frames + 1, to be able to use it in vkAcquireNextImageKHR
-    uint32_t                SemaphoreIndex;     // Current set of swapchain wait semaphores we're using (needs to be distinct from per frame data)
+    int                 Width;
+    int                 Height;
+    VkSwapchainKHR      Swapchain;
+    VkSurfaceKHR        Surface;
+    VkSurfaceFormatKHR  SurfaceFormat;
+    VkPresentModeKHR    PresentMode;
+    VkRenderPass        RenderPass;
+    bool                UseDynamicRendering;
+    bool                ClearEnable;
+    VkClearValue        ClearValue;
+    uint32_t            FrameIndex;             // Current frame being rendered to (0 <= FrameIndex < FrameInFlightCount)
+    uint32_t            ImageCount;             // Number of simultaneous in-flight frames (returned by vkGetSwapchainImagesKHR, usually derived from min_image_count)
+    uint32_t            SemaphoreCount;         // Number of simultaneous in-flight frames + 1, to be able to use it in vkAcquireNextImageKHR
+    uint32_t            SemaphoreIndex;         // Current set of swapchain wait semaphores we're using (needs to be distinct from per frame data)
     ImVector<ImGui_ImplVulkanH_Frame>           Frames;
     ImVector<ImGui_ImplVulkanH_FrameSemaphores> FrameSemaphores;
 
     ImGui_ImplVulkanH_Window()
     {
         memset((void*)this, 0, sizeof(*this));
-
-        // Parameters to create SwapChain
-        PresentMode = (VkPresentModeKHR)~0;             // Ensure we get an error if user doesn't set this.
-
-        // Parameters to create RenderPass
-        AttachmentDesc.format = VK_FORMAT_UNDEFINED;    // Will automatically use wd->SurfaceFormat.format.
-        AttachmentDesc.samples = VK_SAMPLE_COUNT_1_BIT;
-        AttachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-        AttachmentDesc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-        AttachmentDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-        AttachmentDesc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-        AttachmentDesc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        AttachmentDesc.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+        PresentMode = (VkPresentModeKHR)~0;     // Ensure we get an error if user doesn't set this.
+        ClearEnable = true;
     }
 };
 
