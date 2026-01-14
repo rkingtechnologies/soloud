@@ -22,98 +22,76 @@ freely, subject to the following restrictions:
    distribution.
 */
 
-#include <stdlib.h>
-#include <stdio.h>
+#include <iostream>
+#include <print>
+#include <string>
 
 #include "soloud.h"
 #include "soloud_speech.h"
-#include "soloud_openmpt.h"
-#include "soloud_wav.h"
 #include "soloud_thread.h"
+#include "soloud_wav.h"
 
-#ifdef _MSC_VER
-#include <conio.h>
-int mygetch()
-{
-	return _getch();
-}
-#else
-#include <termios.h>
-#include <unistd.h> 
-int mygetch( ) 
-{
-  struct termios oldt, newt;
-  int ch;
-  tcgetattr(STDIN_FILENO, &oldt);
-  newt = oldt;
-  newt.c_lflag &= ~(ICANON | ECHO);
-  tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-  ch = getchar();
-  tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-  return ch;
-}
-#endif
+int main() {
+  // Engine and sources
+  SoLoud::Soloud soloud;
+  SoLoud::Speech speech;
+  SoLoud::Wav wav;
 
+  // Initialize SoLoud
+  const auto init_res = soloud.init();
 
+  if (init_res != SoLoud::SO_NO_ERROR) {
+    std::println("Failed to initialize SoLoud, error: {}", init_res);
+    return 1;
+  }
 
-// Entry point
-int main(int argc, char *argv[])
-{
-	// Declare some variables
-	SoLoud::Soloud soloud; // Engine core
-	SoLoud::Speech speech; // A sound source (speech, in this case)
-	SoLoud::Wav wav;       // One sample source
-	SoLoud::Openmpt mod;   // One song source
+  soloud.setVisualizationEnable(1);  // for fft calc
 
-	// Initialize SoLoud (automatic back-end selection)
-	// also, enable visualization for FFT calc
-	soloud.init();
-	soloud.setVisualizationEnable(1);
-	printf("%s\n", "Welcome to Soloud!");
+  std::println("Welcome to SoLoud!");
 
-	// Load background sample
-	wav.load("audio/windy_ambience.ogg");       // Load a wave file
-	wav.setLooping(1);                          // Tell SoLoud to loop the sound
-	int handle1 = soloud.play(wav);             // Play it
-	soloud.setVolume(handle1, 0.5f);            // Set volume; 1.0f is "normal"
-	soloud.setPan(handle1, -0.2f);              // Set pan; -1 is left, 1 is right
-	soloud.setRelativePlaySpeed(handle1, 0.9f); // Play a bit slower; 1.0f is normal
+  // Load background sample
+  const char* const path = "../assets/audio/windy_ambience.ogg";
 
-	// Configure sound source
-	printf("%s\n>", "What is your name?");
-	char name[512];
-	fgets(name, 511, stdin);	
-	speech.setText(name);
-	speech.setVolume(5);
-	// Play the sound source (we could do this several times if we wanted)
-	soloud.play(speech);
+  const auto res = wav.load(path);
 
+  if (res != SoLoud::SO_NO_ERROR) {
+    std::println("Failed to load audio file: {}, error: {}", path, res);
+    soloud.deinit();
+    return 1;
+  }
 
-	// Wait for voice to finish
-	while (soloud.getVoiceCount() > 1)
-	{
-		// Still going, sleep for a bit
-		SoLoud::Thread::sleep(100);
-	}
+  // Sample options
+  wav.setLooping(1);
+  const int handle = soloud.play(wav);
+  soloud.setVolume(handle, 0.5f);
+  soloud.setPan(handle, -0.2f);
+  soloud.setRelativePlaySpeed(handle, 0.9f);
 
-	soloud.stop(handle1); // stop the wind sound
+  // Configure sound source
+  std::print("What is your name?\n> ");
+  std::string name;
+  std::getline(std::cin, name);
 
-	// Load song
-	SoLoud::result loaded = mod.load("audio/BRUCE.S3M");
-	if (SoLoud::SO_NO_ERROR == loaded) 
-	{
-		soloud.play(mod);
-		printf("%s\n", "Playing music. Press a key to quit..");
-		mygetch();
-	} 
-	else 
-	{
-		printf("%s\n", "Cannot find audio/BRUCE.S3M (or --with-libmodplug build option may be missing)");
-	}
+  // Speak the name
+  speech.setText(name.c_str());
+  speech.setVolume(5.0f);
+  soloud.play(speech);
 
-	// Clean up SoLoud
-	soloud.deinit();
+  // Wait until speech finishes (ambience still playing)
+  while (soloud.getVoiceCount() > 1) {
+    SoLoud::Thread::sleep(100);
+  }
 
-	// All done.
-	return 0;
+  // Exit prompt
+  std::println("Done. Press Enter to quit...");
+  std::cin.get();
+
+  // Stop ambience
+  soloud.stop(handle);
+
+  // Clean up SoLoud
+  soloud.deinit();
+
+  // All done.
+  return 0;
 }

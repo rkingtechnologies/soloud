@@ -1,0 +1,11 @@
+Language: Cpp
+BasedOnStyle: Google
+Standard: c++20
+IndentWidth: 2
+ContinuationIndentWidth: 2
+BreakBeforeBraces: Attach
+AllowShortFunctionsOnASingleLine: None
+AlignAfterOpenBracket: DontAlign
+InsertBraces: true
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
