@@ -84,4 +84,14 @@ target_include_directories(soloud_filter PUBLIC
   $<INSTALL_INTERFACE:include>
 )
 
-add_subdirectory(demos)
+# ------------------------------------------------------------------------------
+# tests / demos
+# ------------------------------------------------------------------------------
+
+option(SOLOUD_BUILD_TESTS "Build tests for soloud" ON)
+set(SOLOUD_TEST_DIR "${SOLOUD_SOURCE_DIR}/tests")
+
+if(SOLOUD_BUILD_TESTS AND EXISTS ${SOLOUD_TEST_DIR})
+  enable_testing()
+  add_subdirectory(${SOLOUD_TEST_DIR})
+endif()
