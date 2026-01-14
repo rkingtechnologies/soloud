@@ -1,7 +1,10 @@
 #ifndef SOLOUD_TESTS_COMMON_WINDOW_H_
 #define SOLOUD_TESTS_COMMON_WINDOW_H_
 
+#pragma warning(disable: 4005)
 #include <GLFW/glfw3.h>
+
+#include "imgui.h"
 
 #include <cstdint>
 #include <list>
@@ -92,6 +95,20 @@ class Window {
     return window_.get();
   }
 
+  inline ImFont* RegularFont() {
+    if (regular_font_ != nullptr) {
+      return regular_font_;
+    }
+    return default_font_;
+  }
+
+  inline ImFont* BoldFont() {
+    if (bold_font_ != nullptr) {
+      return bold_font_;
+    }
+    return default_font_;
+  }
+
   /*!
    * @brief Adds a new Renderable to the render list.
    * @tparam T Must derive from Renderable.
@@ -126,6 +143,10 @@ class Window {
   bool is_running_ = false;
 
   std::list<std::unique_ptr<Renderable>> renderables_;
+
+  ImFont* default_font_;
+  ImFont* regular_font_;
+  ImFont* bold_font_;
 };
 
 }  // namespace soloud::tests::common

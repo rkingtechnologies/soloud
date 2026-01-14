@@ -11,7 +11,7 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
-// #include "themes.h"
+#include "themes.h"
 
 namespace soloud::tests::common {
 
@@ -93,7 +93,7 @@ void Window::InitializeImGui(float main_scale) {
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
   io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
-  // themes::SetModernDarkTheme();
+  themes::SetModernDarkTheme();
 
   ImGuiStyle& style = ImGui::GetStyle();
   style.ScaleAllSizes(main_scale);
@@ -111,7 +111,17 @@ void Window::InitializeImGuiBackends() {
   ImGui_ImplOpenGL3_Init(kGlslVersion.data());
 
   ImGuiIO& io = ImGui::GetIO();
-  //fonts::AddDefaultFont(io.Fonts->AddFontDefault());
+
+  default_font_ = io.Fonts->AddFontDefault();
+  try {
+    regular_font_ =
+      io.Fonts->AddFontFromFileTTF("../assets/fonts/lato_regular.ttf", 24);
+    bold_font_ =
+      io.Fonts->AddFontFromFileTTF("../assets/fonts/lato_bold.ttf", 24);
+  } catch (...) {
+    regular_font_ = nullptr;
+    bold_font_ = nullptr;
+  }
 }
 
 void Window::Run() {
@@ -134,12 +144,11 @@ void Window::Run() {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    //   static const fonts::Font PREFERRED_FONT{"lato_regular", 18u};
-    //   fonts::PushFont(PREFERRED_FONT);
+    ImGui::PushFont(RegularFont());
 
     RenderUI();
 
-    //   fonts::PopFont();
+    ImGui::PopFont();
 
     ImGui::Render();
     RenderFrame();
