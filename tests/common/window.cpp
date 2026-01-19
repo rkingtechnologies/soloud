@@ -91,7 +91,7 @@ void Window::InitializeImGui(float main_scale) {
   ImGuiIO& io = ImGui::GetIO();
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
-  io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+  // io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
   themes::SetModernDarkTheme();
 
@@ -133,12 +133,19 @@ void Window::Run() {
   is_running_ = true;
 
   while (is_running_ && !glfwWindowShouldClose(window_.get())) {
-    if (glfwGetWindowAttrib(window_.get(), GLFW_ICONIFIED) != 0) {
-      ImGui_ImplGlfw_Sleep(kMinimizedWindowSleepMS);
+    glfwPollEvents();
+
+    int width = 0;
+    int height = 0;
+    glfwGetFramebufferSize(window_.get(), &width, &height);
+
+    const bool is_iconified =
+      glfwGetWindowAttrib(window_.get(), GLFW_ICONIFIED) != 0;
+
+    if (width <= 0 || height <= 0 || is_iconified) {
+      ImGui_ImplGlfw_Sleep(10);
       continue;
     }
-
-    glfwPollEvents();
 
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
@@ -151,7 +158,12 @@ void Window::Run() {
     ImGui::PopFont();
 
     ImGui::Render();
-    RenderFrame();
+
+    glViewport(0, 0, width, height);
+    glClearColor(kClearColor.x, kClearColor.y, kClearColor.z, kClearColor.w);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
     HandleMultipleViewports();
 
