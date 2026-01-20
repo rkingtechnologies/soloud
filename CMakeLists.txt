@@ -17,8 +17,6 @@ list(APPEND CMAKE_MODULE_PATH
 
 set(SOLOUD_LIB_INCLUDE_DIR "${SOLOUD_SOURCE_DIR}/include")
 
-add_definitions(-DWITH_MINIAUDIO)
-
 # core
 
 set(SOLOUD_CORE_LIB_SOURCE_DIR "${SOLOUD_SOURCE_DIR}/src/core")

@@ -25,18 +25,6 @@ distribution.
 
 #include "soloud.h"
 
-#if !defined(WITH_MINIAUDIO)
-
-namespace SoLoud
-{
-    result miniaudio_init(SoLoud::Soloud *aSoloud, unsigned int aFlags, unsigned int aSamplerate, unsigned int aBuffer)
-    {
-        return NOT_IMPLEMENTED;
-    }
-}
-
-#else
-
 #define MINIAUDIO_IMPLEMENTATION
 #define MA_NO_NULL
 #define MA_NO_DECODING
@@ -85,4 +73,3 @@ namespace SoLoud
         return 0;
     }
 };
-#endif
