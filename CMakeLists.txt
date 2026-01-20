@@ -54,7 +54,7 @@ target_include_directories(soloud_audiosource PUBLIC
 
 # backend - miniaudo
 
-set(SOLOUD_BACKEND_MINIAUDIO_LIB_SOURCE_DIR "${SOLOUD_SOURCE_DIR}/src/backend/miniaudio")
+set(SOLOUD_BACKEND_MINIAUDIO_LIB_SOURCE_DIR "${SOLOUD_SOURCE_DIR}/external/miniaudio")
 
 file(GLOB_RECURSE SOLOUD_BACKEND_MINIAUDIO_LIB_SOURCES CONFIGURE_DEPENDS
   "${SOLOUD_BACKEND_MINIAUDIO_LIB_SOURCE_DIR}/*.cpp"

@@ -15,12 +15,12 @@ set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS    OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_DOCS     OFF CACHE BOOL "" FORCE)
 set(GLFW_INSTALL        OFF CACHE BOOL "" FORCE)
-add_subdirectory(${SOLOUD_SOURCE_DIR}/external/glfw)
+add_subdirectory(${SOLOUD_SOURCE_DIR}/tests/external/glfw)
 
 # ------------------------------
 # ImGui sources
 # ------------------------------
-set(IMGUI_DIR ${SOLOUD_SOURCE_DIR}/external/imgui)
+set(IMGUI_DIR ${SOLOUD_SOURCE_DIR}/tests/external/imgui)
 
 file(GLOB IMGUI_SOURCES
   CONFIGURE_DEPENDS
