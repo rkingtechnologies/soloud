@@ -1,6 +1,7 @@
 add_subdirectory(annex)
 add_subdirectory(enumerate)
 add_subdirectory(env)
+add_subdirectory(filterfolio)
 add_subdirectory(piano)
 add_subdirectory(simplest)
 add_subdirectory(welcome)
