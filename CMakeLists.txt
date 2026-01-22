@@ -17,6 +17,22 @@ list(APPEND CMAKE_MODULE_PATH
 
 set(SOLOUD_LIB_INCLUDE_DIR "${SOLOUD_SOURCE_DIR}/include")
 
+# backend - miniaudo
+
+set(SOLOUD_BACKEND_MINIAUDIO_LIB_SOURCE_DIR "${SOLOUD_SOURCE_DIR}/external/miniaudio")
+
+file(GLOB_RECURSE SOLOUD_BACKEND_MINIAUDIO_LIB_SOURCES CONFIGURE_DEPENDS
+  "${SOLOUD_BACKEND_MINIAUDIO_LIB_SOURCE_DIR}/*.cpp"
+)
+
+add_library(soloud_backend_miniaudio STATIC ${SOLOUD_BACKEND_MINIAUDIO_LIB_SOURCES})
+add_library(soloud::backend_miniaudio ALIAS soloud_backend_miniaudio)
+
+target_include_directories(soloud_backend_miniaudio PUBLIC
+  $<BUILD_INTERFACE:${SOLOUD_LIB_INCLUDE_DIR}>
+  $<INSTALL_INTERFACE:include>
+)
+
 # core
 
 set(SOLOUD_CORE_LIB_SOURCE_DIR "${SOLOUD_SOURCE_DIR}/src/core")
@@ -33,6 +49,10 @@ target_include_directories(soloud_core PUBLIC
   $<INSTALL_INTERFACE:include>
 )
 
+target_link_libraries(soloud_core PRIVATE
+  soloud::backend_miniaudio
+)
+
 # audiosource
 
 set(SOLOUD_AUDIOSOURCE_LIB_SOURCE_DIR "${SOLOUD_SOURCE_DIR}/src/audiosource")
@@ -46,22 +66,6 @@ add_library(soloud_audiosource STATIC ${SOLOUD_AUDIOSOURCE_LIB_SOURCES})
 add_library(soloud::audiosource ALIAS soloud_audiosource)
 
 target_include_directories(soloud_audiosource PUBLIC
-  $<BUILD_INTERFACE:${SOLOUD_LIB_INCLUDE_DIR}>
-  $<INSTALL_INTERFACE:include>
-)
-
-# backend - miniaudo
-
-set(SOLOUD_BACKEND_MINIAUDIO_LIB_SOURCE_DIR "${SOLOUD_SOURCE_DIR}/external/miniaudio")
-
-file(GLOB_RECURSE SOLOUD_BACKEND_MINIAUDIO_LIB_SOURCES CONFIGURE_DEPENDS
-  "${SOLOUD_BACKEND_MINIAUDIO_LIB_SOURCE_DIR}/*.cpp"
-)
-
-add_library(soloud_backend_miniaudio STATIC ${SOLOUD_BACKEND_MINIAUDIO_LIB_SOURCES})
-add_library(soloud::backend_miniaudio ALIAS soloud_backend_miniaudio)
-
-target_include_directories(soloud_backend_miniaudio PUBLIC
   $<BUILD_INTERFACE:${SOLOUD_LIB_INCLUDE_DIR}>
   $<INSTALL_INTERFACE:include>
 )
@@ -83,14 +87,14 @@ target_include_directories(soloud_filter PUBLIC
 )
 
 # ------------------------------------------------------------------------------
-# tests / demos
+# demos
 # ------------------------------------------------------------------------------
 
-option(SOLOUD_BUILD_TESTS "Build tests for soloud" ON)
-set(SOLOUD_TEST_DIR "${SOLOUD_SOURCE_DIR}/tests")
+option(SOLOUD_BUILD_DEMOS "Build demos for soloud" ON)
+set(SOLOUD_DEMO_DIR "${SOLOUD_SOURCE_DIR}/demos")
 
-if(SOLOUD_BUILD_TESTS AND EXISTS ${SOLOUD_TEST_DIR})
+if(SOLOUD_BUILD_DEMOS AND EXISTS ${SOLOUD_DEMO_DIR})
   enable_testing()
-  include(cmake/tests_common.cmake)
-  add_subdirectory(${SOLOUD_TEST_DIR})
+  include(cmake/demos_common.cmake)
+  add_subdirectory(${SOLOUD_DEMO_DIR})
 endif()

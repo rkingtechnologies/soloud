@@ -9,8 +9,8 @@ This fork modernizes the original SoLoud library with:
 - Clean, **modern CMake** build system (no autotools, no custom scripts)
 - **Modular CMake link libraries** (`soloud::core`, `soloud::audiosource`, and `soloud::filter`)
 - **Miniaudio backend only** — the cleanest, most portable, single-file audio backend
-- Optional tests and demo builds (can be completely disabled/removed)
-- Simplified directory structure & dependency-free integration
+- Optional demo builds (can be completely disabled/removed)
+- Simplified directory structure
 
 SoLoud remains fully **Zlib/libpng licensed** — free for any use, including commercial projects.
 
@@ -18,14 +18,13 @@ Original project & full documentation: [soloud-audio.com](http://soloud-audio.co
 
 ## Why this fork?
 
-| Feature                        | Original SoLoud          | This Fork                     |
-|-------------------------------|--------------------------|-------------------------------|
-| Build system                  | Custom + autotools       | Modern CMake only             |
-| Backend support               | Many (SDL, WASAPI, etc.) | Miniaudio only       |
-| CMake integration             | Basic / manual           | Proper `target_link_libraries` targets |
-| Size / dependencies           | Larger with backends     | Smaller, zero external deps   |
-| Tests & demos                 | Always built             | Optional / removable          |
-| Maintenance focus             | Feature-complete         | Build & integration quality   |
+| Feature                       | Original SoLoud          | This Fork                      |
+|-------------------------------|--------------------------|------------------------------- |
+| Build system                  | Custom + autotools       | Modern CMake                   |
+| Backend support               | Many (SDL, WASAPI, etc.) | Miniaudio only                 |
+| Size / dependencies           | Larger with backends     | Smaller, minimal external deps |
+| Demos                         | Broken                   | Fully supported with a clean ImGui implementation     |
+| Maintenance focus             | Feature-complete         | Build & integration quality    |
 
 Miniaudio was chosen because it's:
 - Single-header, no external dependencies
@@ -52,8 +51,8 @@ target_link_libraries(your_game
         soloud::filter          # Optional: reverb, echo, etc.
 )
 
-# optionally disable building tests & demos
-set(SOLOUD_BUILD_TESTS OFF CACHE BOOL "Disable SoLoud tests" FORCE)
+# optionally disable building the demos
+set(SOLOUD_BUILD_DEMOS OFF CACHE BOOL "Disable SoLoud demos" FORCE)
 
 ```
 
