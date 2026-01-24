@@ -75,7 +75,7 @@ namespace SoLoud
 		char *mText;
 		Vizsn();
 		virtual ~Vizsn();
-		void setText(char *aText);
+		void setText(const char *aText);
 	public:
 		virtual AudioSourceInstance *createInstance();
 	};

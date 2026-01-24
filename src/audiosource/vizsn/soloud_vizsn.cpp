@@ -508,7 +508,7 @@ namespace SoLoud
 		return new VizsnInstance(this);
 	}
 
-	void Vizsn::setText(char *aText)
+	void Vizsn::setText(const char *aText)
 	{
 		if (!aText)
 			return;
