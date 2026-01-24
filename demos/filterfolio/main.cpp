@@ -275,7 +275,7 @@ int main() {
 
   gSpeech.setText("My banana is yellow");
 
-  soloud::tests::common::Window window({"FilterFolio Demo", 264, 424});
+  soloud::tests::common::Window window({"FilterFolio Demo", 650, 700});
   window.AddRenderable<Content>();
   window.Run();
 }
