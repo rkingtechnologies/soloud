@@ -174,7 +174,7 @@ int main() {
 
   gSoloud.destroyVoiceGroup(grouphandle);  // remove group, leaves voices alone
 
-  soloud::tests::common::Window window({"Multimusic Demo", 264, 424});
+  soloud::tests::common::Window window({"Multimusic Demo", 400, 1000});
   window.AddRenderable<Content>();
   window.Run();
 }
