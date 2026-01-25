@@ -1,49 +1,48 @@
 #pragma once
 
-union SNDSAMPLE
-{
-        unsigned sample; // left/right channels in low/high WORDs
-        struct { unsigned short left, right; } ch; // or left/right separately
+union SNDSAMPLE {
+  unsigned sample;  // left/right channels in low/high WORDs
+  struct {
+    unsigned short left, right;
+  } ch;  // or left/right separately
 };
 
 typedef unsigned bufptr_t;
 class SNDRENDER;
 
-class SNDBUFFER
-{
-public:
-        SNDBUFFER(unsigned size);
-        ~SNDBUFFER();
+class SNDBUFFER {
+ public:
+  SNDBUFFER(unsigned size);
+  ~SNDBUFFER();
 
-        void reset();
+  void reset();
 
-        SNDSAMPLE* buffer;
-        bufptr_t size;
+  SNDSAMPLE* buffer;
+  bufptr_t size;
 
-        void count_start();
-        void count(const SNDRENDER& render);
-        unsigned count_end();
+  void count_start();
+  void count(const SNDRENDER& render);
+  unsigned count_end();
 
-        unsigned count_single(const SNDRENDER& render);
-        void get_buffers(bufptr_t& pos1, unsigned& size1, bufptr_t& pos2, unsigned& size2, unsigned count);
+  unsigned count_single(const SNDRENDER& render);
+  void get_buffers(bufptr_t& pos1, unsigned& size1, bufptr_t& pos2,
+    unsigned& size2, unsigned count);
 
-        // can read some samples starting from here, use count_start(), count(), count_end() to detect count of samples ready
-        bufptr_t read_position;
+  // can read some samples starting from here, use count_start(), count(),
+  // count_end() to detect count of samples ready
+  bufptr_t read_position;
 
-        // called when application read `counts` samples from `read_position`
-        // SNDBUFFER needs to zero buffer under read samples to continue mixing
-        void samples_read(unsigned count);
+  // called when application read `counts` samples from `read_position`
+  // SNDBUFFER needs to zero buffer under read samples to continue mixing
+  void samples_read(unsigned count);
 
-private:
-        unsigned samples_ready;
+ private:
+  unsigned samples_ready;
 };
 
+#if 0  // USAGE EXAMPLE
 
-
-
-#if 0 // USAGE EXAMPLE
-
-  #include "sndrender/*.h"
+#include "sndrender/*.h"
 
   SNDBUFFER buf(4096);
   SNDCHIP ay1(buf), ay2(buf);
@@ -83,4 +82,3 @@ private:
   }
 
 #endif
-

@@ -29,42 +29,42 @@ freely, subject to the following restrictions:
 
 class ChipPlayer;
 
-namespace SoLoud
-{
-    class Ay;
-	class File;
-	class AyInstance : public AudioSourceInstance
-	{
-	public:
-		Ay *mParent;
-		ChipPlayer *mChip;
-		int mPos;
+namespace SoLoud {
+class Ay;
+class File;
+class AyInstance : public AudioSourceInstance {
+ public:
+  Ay* mParent;
+  ChipPlayer* mChip;
+  int mPos;
 
-		AyInstance(Ay *aParent);
-		~AyInstance();
-		virtual unsigned int getAudio(float *aBuffer, unsigned int aSamplesToRead, unsigned int aBufferSize);
-		virtual bool hasEnded();
-		virtual result rewind();
-		virtual float getInfo(unsigned int aInfoKey);
-	};
-
-	class Ay : public AudioSource
-	{
-	public:
-		bool mYm;
-		int mChipspeed;
-		int mCpuspeed;
-		int mLooppos;
-		int mLength;
-		unsigned short* mOps;
-	public:
-		Ay();
-		~Ay();
-		result load(const char *aFilename);
-		result loadFile(File *aFile);
-		result loadMem(const unsigned char* aMem, unsigned int aLength, bool aCopy, bool aTakeOwnership);
-		virtual AudioSourceInstance *createInstance();
-	};
+  AyInstance(Ay* aParent);
+  ~AyInstance();
+  virtual unsigned int getAudio(
+    float* aBuffer, unsigned int aSamplesToRead, unsigned int aBufferSize);
+  virtual bool hasEnded();
+  virtual result rewind();
+  virtual float getInfo(unsigned int aInfoKey);
 };
+
+class Ay : public AudioSource {
+ public:
+  bool mYm;
+  int mChipspeed;
+  int mCpuspeed;
+  int mLooppos;
+  int mLength;
+  unsigned short* mOps;
+
+ public:
+  Ay();
+  ~Ay();
+  result load(const char* aFilename);
+  result loadFile(File* aFile);
+  result loadMem(const unsigned char* aMem, unsigned int aLength, bool aCopy,
+    bool aTakeOwnership);
+  virtual AudioSourceInstance* createInstance();
+};
+};  // namespace SoLoud
 
 #endif

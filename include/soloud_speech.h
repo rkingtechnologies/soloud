@@ -24,56 +24,56 @@ freely, subject to the following restrictions:
 #ifndef SOLOUD_SPEECH_H
 #define SOLOUD_SPEECH_H
 
-#include "soloud.h"
 #include "../src/audiosource/speech/darray.h"
 #include "../src/audiosource/speech/klatt.h"
 #include "../src/audiosource/speech/tts.h"
+#include "soloud.h"
 
-namespace SoLoud
-{
-	class Speech;
+namespace SoLoud {
+class Speech;
 
-	class Speech : public AudioSource
-	{
-		// copy of the enum in klatt.h for codegen purposes
-		enum KLATT_WAVEFORM
-		{
-			KW_SAW,
-			KW_TRIANGLE,
-			KW_SIN,
-			KW_SQUARE,
-			KW_PULSE,
-			KW_NOISE,
-			KW_WARBLE
-		};
-	public:
-		int mBaseFrequency;
-		float mBaseSpeed;
-		float mBaseDeclination;
-		int mBaseWaveform;
-		int mFrames;
-		darray mElement;
-		Speech();
-		result setText(const char *aText);
-		result setParams(unsigned int aBaseFrequency = 1330, float aBaseSpeed = 10.0f, float aBaseDeclination = 0.5f, int aBaseWaveform = KW_TRIANGLE);
-		virtual ~Speech();
-		virtual AudioSourceInstance *createInstance();
-	};
+class Speech : public AudioSource {
+  // copy of the enum in klatt.h for codegen purposes
+  enum KLATT_WAVEFORM {
+    KW_SAW,
+    KW_TRIANGLE,
+    KW_SIN,
+    KW_SQUARE,
+    KW_PULSE,
+    KW_NOISE,
+    KW_WARBLE
+  };
 
-	class SpeechInstance : public AudioSourceInstance
-	{
-		klatt mSynth;
-		Speech *mParent;
-		short *mSample;
-		int mSampleCount;
-		int mOffset;
-	public:
-		SpeechInstance(Speech *aParent);
-        virtual ~SpeechInstance();
-		virtual unsigned int getAudio(float *aBuffer, unsigned int aSamplesToRead, unsigned int aBufferSize);
-		virtual result rewind();
-		virtual bool hasEnded();
-	};
+ public:
+  int mBaseFrequency;
+  float mBaseSpeed;
+  float mBaseDeclination;
+  int mBaseWaveform;
+  int mFrames;
+  darray mElement;
+  Speech();
+  result setText(const char* aText);
+  result setParams(unsigned int aBaseFrequency = 1330, float aBaseSpeed = 10.0f,
+    float aBaseDeclination = 0.5f, int aBaseWaveform = KW_TRIANGLE);
+  virtual ~Speech();
+  virtual AudioSourceInstance* createInstance();
 };
+
+class SpeechInstance : public AudioSourceInstance {
+  klatt mSynth;
+  Speech* mParent;
+  short* mSample;
+  int mSampleCount;
+  int mOffset;
+
+ public:
+  SpeechInstance(Speech* aParent);
+  virtual ~SpeechInstance();
+  virtual unsigned int getAudio(
+    float* aBuffer, unsigned int aSamplesToRead, unsigned int aBufferSize);
+  virtual result rewind();
+  virtual bool hasEnded();
+};
+};  // namespace SoLoud
 
 #endif

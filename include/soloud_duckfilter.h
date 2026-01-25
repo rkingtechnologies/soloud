@@ -27,45 +27,40 @@ freely, subject to the following restrictions:
 
 #include "soloud.h"
 
-namespace SoLoud
-{
-	class DuckFilter;
+namespace SoLoud {
+class DuckFilter;
 
-	class DuckFilterInstance : public FilterInstance
-	{
-		handle mListenTo;
-		Soloud* mSoloud;
-		float mCurrentLevel;
-	public:
-		virtual void filter(float *aBuffer, unsigned int aSamples, unsigned int aBufferSize, unsigned int aChannels, float aSamplerate, time aTime);
-		virtual ~DuckFilterInstance();
-		DuckFilterInstance(DuckFilter *aParent);
-	};
+class DuckFilterInstance : public FilterInstance {
+  handle mListenTo;
+  Soloud* mSoloud;
+  float mCurrentLevel;
 
-	class DuckFilter : public Filter
-	{
-	public:
-		enum FILTERATTRIBUTE
-		{
-			WET = 0,
-			ONRAMP,
-			OFFRAMP,
-			LEVEL
-		};
-		Soloud* mSoloud;
-		float mOnRamp;
-		float mOffRamp;
-		float mLevel;
-		handle mListenTo;
-		virtual int getParamCount();
-		virtual const char* getParamName(unsigned int aParamIndex);
-		virtual unsigned int getParamType(unsigned int aParamIndex);
-		virtual float getParamMax(unsigned int aParamIndex);
-		virtual float getParamMin(unsigned int aParamIndex);
-		virtual FilterInstance *createInstance();
-		DuckFilter();
-		result setParams(Soloud* aSoloud, handle aListenTo, float aOnRamp = 0.1f, float aOffRamp = 0.5f, float aLevel = 0.1f);
-	};
-}
+ public:
+  virtual void filter(float* aBuffer, unsigned int aSamples,
+    unsigned int aBufferSize, unsigned int aChannels, float aSamplerate,
+    time aTime);
+  virtual ~DuckFilterInstance();
+  DuckFilterInstance(DuckFilter* aParent);
+};
+
+class DuckFilter : public Filter {
+ public:
+  enum FILTERATTRIBUTE { WET = 0, ONRAMP, OFFRAMP, LEVEL };
+  Soloud* mSoloud;
+  float mOnRamp;
+  float mOffRamp;
+  float mLevel;
+  handle mListenTo;
+  virtual int getParamCount();
+  virtual const char* getParamName(unsigned int aParamIndex);
+  virtual unsigned int getParamType(unsigned int aParamIndex);
+  virtual float getParamMax(unsigned int aParamIndex);
+  virtual float getParamMin(unsigned int aParamIndex);
+  virtual FilterInstance* createInstance();
+  DuckFilter();
+  result setParams(Soloud* aSoloud, handle aListenTo, float aOnRamp = 0.1f,
+    float aOffRamp = 0.5f, float aLevel = 0.1f);
+};
+}  // namespace SoLoud
 
 #endif
