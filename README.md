@@ -7,7 +7,6 @@
 This fork modernizes the original SoLoud library with:
 
 - Clean, **modern CMake** build system (no autotools, no custom scripts)
-- **Modular CMake link libraries** (`soloud::core`, `soloud::audiosource`, and `soloud::filter`)
 - **Miniaudio backend only** — the cleanest, most portable, single-file audio backend
 - Optional demo builds (can be completely disabled/removed)
 - Simplified directory structure
@@ -42,17 +41,12 @@ Miniaudio was chosen because it's:
 
 ```cmake
 # In your CMakeLists.txt
-add_subdirectory(external/soloud)   # or wherever you put this repo
-
-target_link_libraries(your_game
-    PRIVATE
-        soloud::core
-        soloud::audiosource     # Wav, Speech, Noise, etc.
-        soloud::filter          # Optional: reverb, echo, etc.
-)
 
 # optionally disable building the demos
 set(SOLOUD_BUILD_DEMOS OFF CACHE BOOL "Disable SoLoud demos" FORCE)
 
-```
+add_subdirectory(external/soloud)   # or wherever you put this repo
 
+target_link_libraries(your_app PRIVATE soloud::soloud)
+
+```
