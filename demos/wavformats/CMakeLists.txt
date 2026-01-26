@@ -1,6 +1,11 @@
 add_executable(wavformats main.cpp)
 
-target_include_directories(wavformats PRIVATE ${SOLOUD_LIB_INCLUDE_DIR})
+set_target_properties(wavformats PROPERTIES
+  CXX_STANDARD 23
+  CXX_STANDARD_REQUIRED YES
+  CXX_EXTENSIONS NO
+)
 
-target_link_libraries(wavformats PRIVATE 
-    soloud::core soloud::audiosource soloud::filter soloud::demos_common)
+target_include_directories(wavformats PRIVATE ${SOLOUD_INCLUDE_DIR})
+
+target_link_libraries(wavformats PRIVATE soloud::soloud soloud::demos_common)

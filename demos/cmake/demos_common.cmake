@@ -39,6 +39,12 @@ add_library(soloud_demos_common STATIC
   ${IMGUI_SOURCES}   # Include ImGui sources directly
 )
 
+set_target_properties(soloud_demos_common PROPERTIES
+  CXX_STANDARD 23
+  CXX_STANDARD_REQUIRED YES
+  CXX_EXTENSIONS NO
+)
+
 # Include directories
 target_include_directories(soloud_demos_common PUBLIC
   ${SOLOUD_DEMO_DIR}

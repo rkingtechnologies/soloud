@@ -1,98 +1,84 @@
 cmake_minimum_required(VERSION 4.2.1) 
 
-project(SOLOUD VERSION 1.0.0)
+project(SOLOUD VERSION 1.0.0 LANGUAGES CXX C)
 
-set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
+set(SOLOUD_CORE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/core")
+set(SOLOUD_AUDIOSOURCE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/audiosource")
+set(SOLOUD_FILTERS_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/filters")
+set(SOLOUD_MINIAUDIO_BACKEND_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/miniaudio")
 
-# set(SOLOUD_RUNTIME_OUTPUT_DIR ${SOLOUD_SOURCE_DIR}/bin)
-# set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${SOLOUD_RUNTIME_OUTPUT_DIR})
-# set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${SOLOUD_RUNTIME_OUTPUT_DIR})
-# set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${SOLOUD_RUNTIME_OUTPUT_DIR})
-
-list(APPEND CMAKE_MODULE_PATH
-  "${SOLOUD_SOURCE_DIR}/cmake"
+file(GLOB_RECURSE SOLOUD_SOURCES CONFIGURE_DEPENDS
+  "${SOLOUD_CORE_SOURCE_DIR}/*.cpp"
+  "${SOLOUD_AUDIOSOURCE_SOURCE_DIR}/*.cpp"
+  "${SOLOUD_AUDIOSOURCE_SOURCE_DIR}/*.c"
+  "${SOLOUD_FILTERS_SOURCE_DIR}/*.cpp"
+  "${SOLOUD_MINIAUDIO_BACKEND_SOURCE_DIR}/*.cpp"
 )
 
-set(SOLOUD_LIB_INCLUDE_DIR "${SOLOUD_SOURCE_DIR}/include")
+add_library(soloud STATIC ${SOLOUD_SOURCES})
+add_library(soloud::soloud ALIAS soloud)
 
-# backend - miniaudo
-
-set(SOLOUD_BACKEND_MINIAUDIO_LIB_SOURCE_DIR "${SOLOUD_SOURCE_DIR}/external/miniaudio")
-
-file(GLOB_RECURSE SOLOUD_BACKEND_MINIAUDIO_LIB_SOURCES CONFIGURE_DEPENDS
-  "${SOLOUD_BACKEND_MINIAUDIO_LIB_SOURCE_DIR}/*.cpp"
+set_target_properties(soloud PROPERTIES
+  CXX_STANDARD 23
+  CXX_STANDARD_REQUIRED YES
+  CXX_EXTENSIONS NO
+  EXPORT_NAME soloud
 )
 
-add_library(soloud_backend_miniaudio STATIC ${SOLOUD_BACKEND_MINIAUDIO_LIB_SOURCES})
-add_library(soloud::backend_miniaudio ALIAS soloud_backend_miniaudio)
+set(SOLOUD_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
-target_include_directories(soloud_backend_miniaudio PUBLIC
-  $<BUILD_INTERFACE:${SOLOUD_LIB_INCLUDE_DIR}>
-  $<INSTALL_INTERFACE:include>
+target_include_directories(soloud PUBLIC
+  $<BUILD_INTERFACE:${SOLOUD_INCLUDE_DIR}>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
-
-# core
-
-set(SOLOUD_CORE_LIB_SOURCE_DIR "${SOLOUD_SOURCE_DIR}/src/core")
-
-file(GLOB_RECURSE SOLOUD_CORE_LIB_SOURCES CONFIGURE_DEPENDS
-  "${SOLOUD_CORE_LIB_SOURCE_DIR}/*.cpp"
-)
-
-add_library(soloud_core STATIC ${SOLOUD_CORE_LIB_SOURCES})
-add_library(soloud::core ALIAS soloud_core)
-
-target_include_directories(soloud_core PUBLIC
-  $<BUILD_INTERFACE:${SOLOUD_LIB_INCLUDE_DIR}>
-  $<INSTALL_INTERFACE:include>
-)
-
-target_link_libraries(soloud_core PRIVATE
-  soloud::backend_miniaudio
-)
-
-# audiosource
-
-set(SOLOUD_AUDIOSOURCE_LIB_SOURCE_DIR "${SOLOUD_SOURCE_DIR}/src/audiosource")
-
-file(GLOB_RECURSE SOLOUD_AUDIOSOURCE_LIB_SOURCES CONFIGURE_DEPENDS
-  "${SOLOUD_AUDIOSOURCE_LIB_SOURCE_DIR}/*.cpp"
-  "${SOLOUD_AUDIOSOURCE_LIB_SOURCE_DIR}/*.c"
-)
-
-add_library(soloud_audiosource STATIC ${SOLOUD_AUDIOSOURCE_LIB_SOURCES})
-add_library(soloud::audiosource ALIAS soloud_audiosource)
-
-target_include_directories(soloud_audiosource PUBLIC
-  $<BUILD_INTERFACE:${SOLOUD_LIB_INCLUDE_DIR}>
-  $<INSTALL_INTERFACE:include>
-)
-
-# filter
-
-set(SOLOUD_FILTER_LIB_SOURCE_DIR "${SOLOUD_SOURCE_DIR}/src/filter")
-
-file(GLOB_RECURSE SOLOUD_FILTER_LIB_SOURCES CONFIGURE_DEPENDS
-  "${SOLOUD_FILTER_LIB_SOURCE_DIR}/*.cpp"
-)
-
-add_library(soloud_filter STATIC ${SOLOUD_FILTER_LIB_SOURCES})
-add_library(soloud::filter ALIAS soloud_filter)
-
-target_include_directories(soloud_filter PUBLIC
-  $<BUILD_INTERFACE:${SOLOUD_LIB_INCLUDE_DIR}>
-  $<INSTALL_INTERFACE:include>
-)
-
-# ------------------------------------------------------------------------------
-# demos
-# ------------------------------------------------------------------------------
 
 option(SOLOUD_BUILD_DEMOS "Build demos for soloud" ON)
-set(SOLOUD_DEMO_DIR "${SOLOUD_SOURCE_DIR}/demos")
+set(SOLOUD_DEMO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/demos")
 
 if(SOLOUD_BUILD_DEMOS AND EXISTS ${SOLOUD_DEMO_DIR})
   add_subdirectory(${SOLOUD_DEMO_DIR})
 endif()
+
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
+
+install(
+  TARGETS soloud
+  EXPORT soloudTargets
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+# Install headers (flat layout: include/soloud.h → <prefix>/include/soloud.h)
+install(
+  DIRECTORY "${SOLOUD_INCLUDE_DIR}/"
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+  FILES_MATCHING PATTERN "*.h"
+)
+
+install(
+  EXPORT soloudTargets
+  FILE soloudTargets.cmake
+  NAMESPACE soloud::
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/soloud
+)
+
+# ── Package config so find_package(soloud) / find_package(SoLoud) works ─
+configure_package_config_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/soloudConfig.cmake.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/soloudConfig.cmake"
+  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/soloud
+)
+
+write_basic_package_version_file(
+  "${CMAKE_CURRENT_BINARY_DIR}/soloudConfigVersion.cmake"
+  VERSION ${PROJECT_VERSION}
+  COMPATIBILITY SameMajorVersion
+)
+
+install(FILES
+  "${CMAKE_CURRENT_BINARY_DIR}/soloudConfig.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/soloudConfigVersion.cmake"
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/soloud
+)

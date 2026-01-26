@@ -1,6 +1,11 @@
 add_executable(2d main.cpp)
 
-target_include_directories(2d PRIVATE ${SOLOUD_LIB_INCLUDE_DIR})
+set_target_properties(2d PROPERTIES
+  CXX_STANDARD 23
+  CXX_STANDARD_REQUIRED YES
+  CXX_EXTENSIONS NO
+)
 
-target_link_libraries(2d PRIVATE 
-    soloud::core soloud::audiosource soloud::filter soloud::demos_common)
+target_include_directories(2d PRIVATE ${SOLOUD_INCLUDE_DIR})
+
+target_link_libraries(2d PRIVATE soloud::soloud soloud::demos_common)
