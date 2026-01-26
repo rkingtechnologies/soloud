@@ -1,0 +1,1 @@
+Don't delete me: soloud uses me to verify the demo assets directory

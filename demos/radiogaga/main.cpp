@@ -26,6 +26,9 @@ freely, subject to the following restrictions:
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <print>
+
+#include "common/asset_manager.h"
 #include "common/window.h"
 #include "imgui.h"
 #include "soloud.h"
@@ -65,7 +68,8 @@ void RenderRadioGaga() {
   {
     float* fft = gMusicBus.calcFFT();
     float* buf = gMusicBus.getWave();
-    ImGui::PlotLines("##music_wave", buf, 256, 0, "Wave", -1, 1, ImVec2(264, 80));
+    ImGui::PlotLines(
+      "##music_wave", buf, 256, 0, "Wave", -1, 1, ImVec2(264, 80));
     ImGui::PlotHistogram(
       "##music_fft", fft, 256 / 2, 0, "FFT", 0, 10, ImVec2(264, 80), 8);
     ImGui::Text("Music queue      : %d", gMusicQueue.getQueueCount());
@@ -101,7 +105,8 @@ void RenderRadioGaga() {
   {
     float* buf = gSpeechBus.getWave();
     float* fft = gSpeechBus.calcFFT();
-    ImGui::PlotLines("##poet_wave", buf, 256, 0, "Wave", -1, 1, ImVec2(264, 80));
+    ImGui::PlotLines(
+      "##poet_wave", buf, 256, 0, "Wave", -1, 1, ImVec2(264, 80));
     ImGui::PlotHistogram(
       "##poet_fft", fft, 256 / 2, 0, "FFT", 0, 10, ImVec2(264, 80), 8);
     ImGui::Text("Speech queue     : %d", gSpeechQueue.getQueueCount());
@@ -143,6 +148,45 @@ class Content : public soloud::tests::common::Renderable {
   }
 };
 
+void LoadAudioFile(const std::filesystem::path& path, SoLoud::Wav& wav) {
+  if (!std::filesystem::exists(path)) {
+    std::println("Could not find audio file: {}", path.string());
+    return;
+  }
+
+  wav.load(path.string().c_str());
+}
+
+void LoadAudioFiles() {
+  const auto asset_dir = demo_asset_manager::FindDemoAssetsDir();
+
+  if (asset_dir == std::nullopt) {
+    std::println("Could not find demo assets directory!");
+    return;  // prevent against dereferencing nullopt
+  }
+
+  LoadAudioFile(
+    *asset_dir / "audio" / "9 (102 BPM)_Seq01.wav", gMusicPhrase[0]);
+  LoadAudioFile(
+    *asset_dir / "audio" / "9 (102 BPM)_Seq02.wav", gMusicPhrase[1]);
+  LoadAudioFile(
+    *asset_dir / "audio" / "9 (102 BPM)_Seq03.wav", gMusicPhrase[2]);
+  LoadAudioFile(
+    *asset_dir / "audio" / "9 (102 BPM)_Seq04.wav", gMusicPhrase[3]);
+  LoadAudioFile(
+    *asset_dir / "audio" / "9 (102 BPM)_Seq05.wav", gMusicPhrase[4]);
+  LoadAudioFile(
+    *asset_dir / "audio" / "9 (102 BPM)_Seq06.wav", gMusicPhrase[5]);
+  LoadAudioFile(
+    *asset_dir / "audio" / "9 (102 BPM)_Seq07.wav", gMusicPhrase[6]);
+  LoadAudioFile(
+    *asset_dir / "audio" / "9 (102 BPM)_Seq08.wav", gMusicPhrase[7]);
+  LoadAudioFile(
+    *asset_dir / "audio" / "9 (102 BPM)_Seq09.wav", gMusicPhrase[8]);
+  LoadAudioFile(
+    *asset_dir / "audio" / "9 (102 BPM)_Seq10.wav", gMusicPhrase[9]);
+}
+
 void InitAudio() {
   gSoloud.init();
   gSoloud.setVisualizationEnable(1);
@@ -156,16 +200,7 @@ void InitAudio() {
     gSpeechPhrase[i].setText(phrase[i]);
   }
 
-  gMusicPhrase[0].load("../assets/audio/9 (102 BPM)_Seq01.wav");
-  gMusicPhrase[1].load("../assets/audio/9 (102 BPM)_Seq02.wav");
-  gMusicPhrase[2].load("../assets/audio/9 (102 BPM)_Seq03.wav");
-  gMusicPhrase[3].load("../assets/audio/9 (102 BPM)_Seq04.wav");
-  gMusicPhrase[4].load("../assets/audio/9 (102 BPM)_Seq05.wav");
-  gMusicPhrase[5].load("../assets/audio/9 (102 BPM)_Seq06.wav");
-  gMusicPhrase[6].load("../assets/audio/9 (102 BPM)_Seq07.wav");
-  gMusicPhrase[7].load("../assets/audio/9 (102 BPM)_Seq08.wav");
-  gMusicPhrase[8].load("../assets/audio/9 (102 BPM)_Seq09.wav");
-  gMusicPhrase[9].load("../assets/audio/9 (102 BPM)_Seq10.wav");
+  LoadAudioFiles();
 
   gSpeechQueue.setParamsFromAudioSource(gSpeechPhrase[0]);
   gSpeechqueuehandle = gSpeechBus.play(gSpeechQueue, 1, 0, true);

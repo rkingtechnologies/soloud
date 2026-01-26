@@ -26,6 +26,9 @@ freely, subject to the following restrictions:
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <print>
+
+#include "common/asset_manager.h"
 #include "common/window.h"
 #include "soloud.h"
 #include "soloud_biquadresonantfilter.h"
@@ -51,7 +54,7 @@ float filter_param2[4] = {2, 3, 0, 0};
 int hwchannels = 4;
 int waveform = 0;
 
-void RenderMonotone() {
+void SetFilters() {
   gSoloud.setFilterParameter(gMusichandle, 0, 0, filter_param0[0]);
   gSoloud.setFilterParameter(gMusichandle, 1, 0, filter_param0[1]);
   gSoloud.setFilterParameter(gMusichandle, 2, 0, filter_param0[2]);
@@ -61,6 +64,10 @@ void RenderMonotone() {
   gSoloud.setFilterParameter(gMusichandle, 0, 3, filter_param2[0]);
   gSoloud.setFilterParameter(gMusichandle, 1, 1, filter_param1[1]);
   gSoloud.setFilterParameter(gMusichandle, 1, 2, filter_param2[1]);
+}
+
+void RenderMonotone() {
+  SetFilters();
 
   float* buf = gSoloud.getWave();
   float* fft = gSoloud.calcFFT();
@@ -159,10 +166,29 @@ class Content : public soloud::tests::common::Renderable {
   }
 };
 
-}  // namespace
+void LoadAudioFile(const std::filesystem::path& path, SoLoud::Monotone& audio) {
+  if (!std::filesystem::exists(path)) {
+    std::println("Could not find audio file: {}", path.string());
+    return;
+  }
 
-int main() {
-  gMusic.load("../assets/audio/Jakim - Aboriginal Derivatives.mon");
+  audio.load(path.string().c_str());
+}
+
+void LoadAudioFiles() {
+  const auto asset_dir = demo_asset_manager::FindDemoAssetsDir();
+
+  if (asset_dir == std::nullopt) {
+    std::println("Could not find demo assets directory!");
+    return;  // prevent against dereferencing nullopt
+  }
+
+  LoadAudioFile(
+    *asset_dir / "audio" / "Jakim - Aboriginal Derivatives.mon", gMusic);
+}
+
+void InitAudio() {
+  LoadAudioFiles();
   gMusic.setParams(10);
 
   gEcho.setParams(0.2f, 0.5f, 0.05f);
@@ -180,6 +206,14 @@ int main() {
   gMusichandle = gSoloud.play(gMusic);
   waveform = SoLoud::Soloud::WAVE_SAW;
   gMusic.setParams(hwchannels, waveform);
+}
+
+}  // namespace
+
+int main() {
+  InitAudio();
+
+  SetFilters();
 
   soloud::tests::common::Window window({"Monotone Demo", 550, 850});
   window.AddRenderable<Content>();

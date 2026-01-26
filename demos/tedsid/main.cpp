@@ -21,11 +21,13 @@ freely, subject to the following restrictions:
    3. This notice may not be removed or altered from any source
    distribution.
 */
-
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <print>
+
+#include "common/asset_manager.h"
 #include "common/window.h"
 #include "imgui.h"
 #include "soloud.h"
@@ -180,12 +182,29 @@ class Content : public soloud::tests::common::Renderable {
   }
 };
 
+void LoadAudioFile(const std::filesystem::path& path, SoLoud::TedSid& tedsid) {
+  if (!std::filesystem::exists(path)) {
+    std::println("Could not find audio file: {}", path.string());
+    return;
+  }
+
+  tedsid.load(path.string().c_str());
+}
+
+void LoadAudioFiles() {
+  const auto asset_dir = demo_asset_manager::FindDemoAssetsDir();
+
+  if (asset_dir == std::nullopt) {
+    std::println("Could not find demo assets directory!");
+    return;  // prevent against dereferencing nullopt
+  }
+
+  LoadAudioFile(*asset_dir / "audio" / "Modulation.sid.dump", gMusic1);
+  LoadAudioFile(*asset_dir / "audio" / "ted_storm.prg.dump", gMusic2);
+}
+
 void InitAudio() {
-  auto res = gMusic1.load("../assets/audio/Modulation.sid.dump");
-
-  std::printf("Load result: %d\n", res);
-
-  gMusic2.load("../assets/audio/ted_storm.prg.dump");
+  LoadAudioFiles();
 
   gEcho.setParams(0.2f, 0.5f, 0.05f);
   gBiquad.setParams(SoLoud::BiquadResonantFilter::LOWPASS, 4000, 2);

@@ -22,6 +22,9 @@ freely, subject to the following restrictions:
    distribution.
 */
 
+#include <print>
+
+#include "common/asset_manager.h"
 #include "common/window.h"
 #include "imgui.h"
 #include "soloud.h"
@@ -236,26 +239,52 @@ class Content : public soloud::tests::common::Renderable {
   }
 };
 
-}  // namespace
+void LoadAudioFile(const std::filesystem::path& path, SoLoud::Wav& wav) {
+   if (!std::filesystem::exists(path)) {
+    std::println("Could not find audio file: {}", path.string());
+    return;
+  }
 
-int main() {
+  wav.load(path.string().c_str());
+}
+
+void LoadAudioFiles() {
+  const auto asset_dir = demo_asset_manager::FindDemoAssetsDir();
+
+  if (asset_dir == std::nullopt) {
+    std::println("Could not find demo assets directory!");
+    return;  // prevent against dereferencing nullopt
+  }
+
+  LoadAudioFile(*asset_dir / "audio" / "thunder_and_rain.wav", rain);
+  LoadAudioFile(*asset_dir / "audio" / "windy_ambience.ogg", wind);
+  LoadAudioFile(*asset_dir / "audio" / "tetsno.ogg", music);
+}
+
+void InitAudio() {
   g_soloud.init(
     SoLoud::Soloud::CLIP_ROUNDOFF | SoLoud::Soloud::ENABLE_VISUALIZATION);
   g_soloud.setGlobalVolume(0.75);
   g_soloud.setPostClipScaler(0.75);
 
-  rain.load("../assets/audio/thunder_and_rain.wav");
+  LoadAudioFiles();
+
   rain.setLooping(1);
-  wind.load("../assets/audio/windy_ambience.ogg");
   wind.setLooping(1);
-  music.load("../assets/audio/tetsno.ogg");
   music.setLooping(1);
+  
   lp_filter.setParams(SoLoud::BiquadResonantFilter::LOWPASS, 100, 10);
   music.setFilter(0, &lp_filter);
 
   rain_handle = g_soloud.play(rain, 1);
   wind_handle = g_soloud.play(wind, 0);
   music_handle = g_soloud.play(music, 0);
+}
+
+}  // namespace
+
+int main() {
+  InitAudio();
 
   soloud::tests::common::Window window({"Environmental Sound Demo", 640, 640});
   window.AddRenderable<Content>();

@@ -46,6 +46,16 @@ target_include_directories(soloud_demos_common PUBLIC
   ${IMGUI_DIR}/backends
 )
 
+set(DEMO_ASSETS_DIR "${SOLOUD_DEMO_DIR}/assets")
+
+if(EXISTS ${DEMO_ASSETS_DIR})
+  target_compile_definitions(soloud_demos_common PRIVATE
+    SOLOUD_DEMO_ASSETS_DIR="${DEMO_ASSETS_DIR}"
+  )
+else()
+  message(WARNING "Demo assets directory not found: ${DEMO_ASSETS_DIR}")
+endif()
+
 # Link libraries
 target_link_libraries(soloud_demos_common PUBLIC
   glfw

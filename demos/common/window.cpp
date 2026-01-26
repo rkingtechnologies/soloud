@@ -8,6 +8,7 @@
 
 // #include "error_handler.h"
 // #include "fonts.h"
+#include "common/asset_manager.h"
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
@@ -113,11 +114,24 @@ void Window::InitializeImGuiBackends() {
   ImGuiIO& io = ImGui::GetIO();
 
   default_font_ = io.Fonts->AddFontDefault();
+
+  auto asset_dir = demo_asset_manager::FindDemoAssetsDir();
+
+  if (asset_dir == std::nullopt) {
+    return;
+  }
+
+  const std::filesystem::path& regular_font_path =
+    *asset_dir / "fonts" / "lato_regular.ttf";
+
+  const std::filesystem::path& bold_font_path =
+    *asset_dir / "fonts" / "lato_bold.ttf";
+
   try {
     regular_font_ =
-      io.Fonts->AddFontFromFileTTF("../assets/fonts/lato_regular.ttf", 24);
+      io.Fonts->AddFontFromFileTTF(regular_font_path.string().c_str(), 24);
     bold_font_ =
-      io.Fonts->AddFontFromFileTTF("../assets/fonts/lato_bold.ttf", 24);
+      io.Fonts->AddFontFromFileTTF(bold_font_path.string().c_str(), 24);
   } catch (...) {
     regular_font_ = nullptr;
     bold_font_ = nullptr;

@@ -26,6 +26,10 @@ freely, subject to the following restrictions:
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <print>
+#include <string>
+
+#include "common/asset_manager.h"
 #include "common/window.h"
 #include "imgui.h"
 #include "soloud.h"
@@ -67,12 +71,25 @@ void InitAudio() {
   gWavOk = new bool[files];
   gWavStreamOk = new bool[files];
 
-  int i;
-  for (i = 0; i < files; i++) {
-    char temp[256];
-    sprintf(temp, "../assets/audio/wavformats/%s", filenames[i]);
-    gWavOk[i] = gWav[i].load(temp) == SoLoud::SO_NO_ERROR;
-    gWavStreamOk[i] = gWavstream[i].load(temp) == SoLoud::SO_NO_ERROR;
+  const auto asset_dir = demo_asset_manager::FindDemoAssetsDir();
+
+  if (asset_dir == std::nullopt) {
+    std::println("Could not find demo assets directory!");
+    return;  // prevent against dereferencing nullopt
+  }
+
+  for (int i = 0; i < files; i++) {
+    if (asset_dir == std::nullopt) {
+      gWavOk[i] = false;
+      gWavStreamOk[i] = false;
+      continue;
+    }
+
+    const std::filesystem::path audio_path =
+      *asset_dir / "audio" / "wavformats" / filenames[i];
+
+    gWavOk[i] = gWav[i].load(audio_path.string().c_str()) == SoLoud::SO_NO_ERROR;
+    gWavStreamOk[i] = gWavstream[i].load(audio_path.string().c_str()) == SoLoud::SO_NO_ERROR;
   }
 }
 

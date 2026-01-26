@@ -26,6 +26,9 @@ freely, subject to the following restrictions:
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <print>
+
+#include "common/asset_manager.h"
 #include "common/window.h"
 #include "soloud.h"
 #include "soloud_sfxr.h"
@@ -150,11 +153,29 @@ class Content : public soloud::tests::common::Renderable {
   }
 };
 
-}  // namespace
+void LoadAudioFile(const std::filesystem::path& path, SoLoud::WavStream& wav) {
+  if (!std::filesystem::exists(path)) {
+    std::println("Could not find audio file: {}", path.string());
+    return;
+  }
 
-int main() {
-  gMusic1.load("../assets/audio/plonk_wet.ogg");
-  gMusic2.load("../assets/audio/plonk_dry.ogg");
+  wav.load(path.string().c_str());
+}
+
+void LoadAudioFiles() {
+  const auto asset_dir = demo_asset_manager::FindDemoAssetsDir();
+
+  if (asset_dir == std::nullopt) {
+    std::println("Could not find demo assets directory!");
+    return;  // prevent against dereferencing nullopt
+  }
+
+  LoadAudioFile(*asset_dir / "audio" / "plonk_wet.ogg", gMusic1);
+  LoadAudioFile(*asset_dir / "audio" / "plonk_dry.ogg", gMusic2);
+}
+
+void InitAudio() {
+  LoadAudioFiles();
 
   gMusic1.setLooping(1);
   gMusic2.setLooping(1);
@@ -173,6 +194,12 @@ int main() {
   gSoloud.setPause(grouphandle, 0);         // unpause all voices in group
 
   gSoloud.destroyVoiceGroup(grouphandle);  // remove group, leaves voices alone
+}
+
+}  // namespace
+
+int main() {
+  InitAudio();
 
   soloud::tests::common::Window window({"Multimusic Demo", 400, 1000});
   window.AddRenderable<Content>();

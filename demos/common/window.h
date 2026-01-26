@@ -144,9 +144,9 @@ class Window {
 
   std::list<std::unique_ptr<Renderable>> renderables_;
 
-  ImFont* default_font_;
-  ImFont* regular_font_;
-  ImFont* bold_font_;
+  ImFont* default_font_ = nullptr;
+  ImFont* regular_font_= nullptr;
+  ImFont* bold_font_ = nullptr;
 };
 
 }  // namespace soloud::tests::common

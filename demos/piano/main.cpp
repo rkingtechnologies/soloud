@@ -21,14 +21,15 @@ freely, subject to the following restrictions:
    3. This notice may not be removed or altered from any source
    distribution.
 */
-
 #include <algorithm>
 #include <array>
 #include <format>
 #include <memory>
+#include <print>
 #include <ranges>
 #include <string>
 
+#include "common/asset_manager.h"
 #include "common/window.h"
 #include "imgui.h"
 #include "rt_midi.h"
@@ -82,9 +83,18 @@ float g_release = 0.5f;
 // Waveform
 SoLoud::Basicwave g_wave;
 
+void LoadAudioFile(const std::filesystem::path& path, SoLoud::Wav& wav) {
+  if (!std::filesystem::exists(path)) {
+    std::println("Could not find audio file: {}", path.string());
+    return;
+  }
+
+  wav.load(path.string().c_str());
+}
+
 void Plonk(float rel, float vol = 0x50) {
-  auto it =
-    std::ranges::find_if(g_plonked, [](const auto& e) { return e.handle == 0; });
+  auto it = std::ranges::find_if(
+    g_plonked, [](const auto& e) { return e.handle == 0; });
 
   if (it == g_plonked.end()) {
     return;
@@ -109,7 +119,15 @@ void Plonk(float rel, float vol = 0x50) {
       break;
     case SynthEngine::kFileSample:
       if (static bool first = true; first) {
-        sample_wav.load("../assets/audio/AKWF_c604_0024.wav");
+        const auto asset_dir = demo_asset_manager::FindDemoAssetsDir();
+
+        if (asset_dir == std::nullopt) {
+          std::println("Could not find demo assets directory!");
+          return;  // prevent against dereferencing nullopt
+        }
+
+        LoadAudioFile(*asset_dir / "audio" / "AKWF_c604_0024.wav", sample_wav);
+
         sample_wav.setLooping(1);
         first = false;
       }

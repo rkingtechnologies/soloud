@@ -26,6 +26,9 @@ freely, subject to the following restrictions:
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <print>
+
+#include "common/asset_manager.h"
 #include "common/window.h"
 #include "imgui.h"
 #include "soloud.h"
@@ -59,7 +62,8 @@ class RadioSet {
     return SoLoud::SO_NO_ERROR;
   }
 
-  SoLoud::result setAck(SoLoud::AudioSource& aAudioSource, unsigned int aAckLength) {
+  SoLoud::result setAck(
+    SoLoud::AudioSource& aAudioSource, unsigned int aAckLength) {
     mAck = &aAudioSource;
     mAckLength = aAckLength;
     return SoLoud::SO_NO_ERROR;
@@ -165,24 +169,46 @@ void RenderTheButton() {
   }
 }
 
+void LoadAudioFile(const std::filesystem::path& path, SoLoud::Wav& wav) {
+  if (!std::filesystem::exists(path)) {
+    std::println("Could not find audio file: {}", path.string());
+    return;
+  }
+
+  wav.load(path.string().c_str());
+}
+
+void LoadAudioFiles() {
+  const auto asset_dir = demo_asset_manager::FindDemoAssetsDir();
+
+  if (asset_dir == std::nullopt) {
+    std::println("Could not find demo assets directory!");
+    return;  // prevent against dereferencing nullopt
+  }
+
+  LoadAudioFile(*asset_dir / "audio" / "thebutton" / "button1.mp3", gPhrase[0]);
+  LoadAudioFile(*asset_dir / "audio" / "thebutton" / "button2.mp3", gPhrase[1]);
+  LoadAudioFile(*asset_dir / "audio" / "thebutton" / "button3.mp3", gPhrase[2]);
+  LoadAudioFile(*asset_dir / "audio" / "thebutton" / "button4.mp3", gPhrase[3]);
+  LoadAudioFile(*asset_dir / "audio" / "thebutton" / "button5.mp3", gPhrase[4]);
+  LoadAudioFile(*asset_dir / "audio" / "thebutton" / "cough.mp3", gPhrase[5]);
+  LoadAudioFile(*asset_dir / "audio" / "thebutton" / "button6.mp3", gPhrase[6]);
+  LoadAudioFile(*asset_dir / "audio" / "thebutton" / "button7.mp3", gPhrase[7]);
+  LoadAudioFile(*asset_dir / "audio" / "thebutton" / "button1.mp3", gPhrase[8]);
+  LoadAudioFile(*asset_dir / "audio" / "thebutton" / "sigh.mp3", gPhrase[9]);
+  LoadAudioFile(
+    *asset_dir / "audio" / "thebutton" / "thankyou.mp3", gPhrase[10]);
+  LoadAudioFile(*asset_dir / "audio" / "thebutton" / "ack.ogg", gPhrase[11]);
+}
+
 void InitAudio() {
   gCycles = 0;
   gNextEvent = 0;
   gSoloud.init(
     SoLoud::Soloud::CLIP_ROUNDOFF | SoLoud::Soloud::ENABLE_VISUALIZATION);
   gRadioSet.init(gSoloud, NULL);
-  gPhrase[0].load("../assets/audio/thebutton/button1.mp3");
-  gPhrase[1].load("../assets/audio/thebutton/button2.mp3");
-  gPhrase[2].load("../assets/audio/thebutton/button3.mp3");
-  gPhrase[3].load("../assets/audio/thebutton/button4.mp3");
-  gPhrase[4].load("../assets/audio/thebutton/button5.mp3");
-  gPhrase[5].load("../assets/audio/thebutton/cough.mp3");
-  gPhrase[6].load("../assets/audio/thebutton/button6.mp3");
-  gPhrase[7].load("../assets/audio/thebutton/button7.mp3");
-  gPhrase[8].load("../assets/audio/thebutton/button1.mp3");
-  gPhrase[9].load("../assets/audio/thebutton/sigh.mp3");
-  gPhrase[10].load("../assets/audio/thebutton/thankyou.mp3");
-  gPhrase[11].load("../assets/audio/thebutton/ack.ogg");
+
+  LoadAudioFiles();
 
   int i;
   for (i = 0; i < 11; i++) {

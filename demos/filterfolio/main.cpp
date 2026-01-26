@@ -26,6 +26,10 @@ freely, subject to the following restrictions:
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <print>
+
+#include "common/asset_manager.h"
+#include "common/window.h"
 #include "imgui.h"
 #include "soloud.h"
 #include "soloud_bassboostfilter.h"
@@ -44,8 +48,6 @@ freely, subject to the following restrictions:
 #include "soloud_wav.h"
 #include "soloud_waveshaperfilter.h"
 #include "soloud_wavstream.h"
-
-#include "common/window.h"
 
 namespace {
 
@@ -238,12 +240,30 @@ class Content : public soloud::tests::common::Renderable {
   }
 };
 
-}  // namespace
+void LoadAudioFile(const std::filesystem::path& path, SoLoud::WavStream& wav) {
+  if (!std::filesystem::exists(path)) {
+    std::println("Could not find audio file: {}", path.string());
+    return;
+  }
 
-int main() {
-  gMusic1.load("../assets/audio/plonk_wet.ogg");
-  gMusic2.load("../assets/audio/delphi_loop.ogg");
-  gMusic3.load("../assets/audio/tetsno.ogg");
+  wav.load(path.string().c_str());
+}
+
+void LoadAudioFiles() {
+  const auto asset_dir = demo_asset_manager::FindDemoAssetsDir();
+
+  if (asset_dir == std::nullopt) {
+    std::println("Could not find demo assets directory!");
+    return;  // prevent against dereferencing nullopt
+  }
+
+  LoadAudioFile(*asset_dir / "audio" / "plonk_wet.ogg", gMusic1);
+  LoadAudioFile(*asset_dir / "audio" / "delphi_loop.ogg", gMusic2);
+  LoadAudioFile(*asset_dir / "audio" / "tetsno.ogg", gMusic3);
+}
+
+void InitAudio() {
+  LoadAudioFiles();
 
   gMusic1.setLooping(1);
   gMusic2.setLooping(1);
@@ -274,6 +294,12 @@ int main() {
   gFilter[10] = new SoLoud::EqFilter;
 
   gSpeech.setText("My banana is yellow");
+}
+
+}  // namespace
+
+int main() {
+  InitAudio();
 
   soloud::tests::common::Window window({"FilterFolio Demo", 650, 700});
   window.AddRenderable<Content>();

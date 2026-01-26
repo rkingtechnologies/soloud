@@ -26,6 +26,7 @@ freely, subject to the following restrictions:
 #include <print>
 #include <string>
 
+#include "common/asset_manager.h"
 #include "soloud.h"
 #include "soloud_speech.h"
 #include "soloud_thread.h"
@@ -49,13 +50,20 @@ int main() {
 
   std::println("Welcome to SoLoud!");
 
-  // Load background sample
-  const char* const path = "../assets/audio/windy_ambience.ogg";
+  const auto asset_dir = demo_asset_manager::FindDemoAssetsDir();
 
-  const auto res = wav.load(path);
+  if (asset_dir == std::nullopt) {
+    std::println("Could not find demo assets directory!");
+    return 1;  // prevent against dereferencing nullopt
+  }
+
+  // Load background sample
+  const auto path = *asset_dir / "audio" / "windy_ambience.ogg";
+
+  const auto res = wav.load(path.string().c_str());
 
   if (res != SoLoud::SO_NO_ERROR) {
-    std::println("Failed to load audio file: {}, error: {}", path, res);
+    std::println("Failed to load audio file: {}, error: {}", path.string(), res);
     soloud.deinit();
     return 1;
   }

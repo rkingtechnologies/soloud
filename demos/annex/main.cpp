@@ -26,6 +26,9 @@ freely, subject to the following restrictions:
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <print>
+
+#include "common/asset_manager.h"
 #include "common/window.h"
 #include "imgui.h"
 #include "soloud.h"
@@ -116,15 +119,32 @@ class Content : public soloud::tests::common::Renderable {
   }
 };
 
-}  // namespace
+void LoadMusic() {
+  const auto asset_dir = demo_asset_manager::FindDemoAssetsDir();
 
-int main() {
+  if (asset_dir == std::nullopt) {
+    std::println("Could not find demo assets directory!");
+    return;  // prevent against dereferencing nullopt
+  }
+
+  const std::filesystem::path& music_path =
+    *asset_dir / "audio" / "delphi_loop.ogg";
+
+  if (!std::filesystem::exists(music_path)) {
+    std::println("Could not find music file: {}", music_path.string());
+    return;
+  }
+
+  gMusic.load(music_path.string().c_str());
+}
+
+void InitAudio() {
   gSoloud.init(
     SoLoud::Soloud::CLIP_ROUNDOFF | SoLoud::Soloud::ENABLE_VISUALIZATION);
 
   gFrozen = 0;
 
-  gMusic.load("../assets/audio/delphi_loop.ogg");
+  LoadMusic();
   gMusic.setLooping(1);
 
   gLofi.setParams(1000, 6);
@@ -141,8 +161,14 @@ int main() {
   gSoloud.play(gBus3);
   gSoloud.play(gBus4);
   gMusichandle = gBus1.play(gMusic);
+}
 
-  soloud::tests::common::Window window({"Annex Demo", 264, 424});
+}  // namespace
+
+int main() {
+  InitAudio();
+
+  soloud::tests::common::Window window({"Annex Demo", 400, 600});
   window.AddRenderable<Content>();
   window.Run();
 }

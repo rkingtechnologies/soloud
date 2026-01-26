@@ -26,6 +26,9 @@ freely, subject to the following restrictions:
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <print>
+
+#include "common/asset_manager.h"
 #include "common/window.h"
 #include "imgui.h"
 #include "soloud.h"
@@ -129,9 +132,28 @@ void SetupSpeech() {
     "The train has already gone, would you like to hire a bicycle?");
 }
 
-}  // namespace
+void LoadAudioFile(const std::filesystem::path& path, SoLoud::Wav& wav) {
+  if (!std::filesystem::exists(path)) {
+    std::println("Could not find audio file: {}", path.string());
+    return;
+  }
 
-int main() {
+  wav.load(path.string().c_str());
+}
+
+void LoadAudioFiles() {
+  const auto asset_dir = demo_asset_manager::FindDemoAssetsDir();
+
+  if (asset_dir == std::nullopt) {
+    std::println("Could not find demo assets directory!");
+    return;  // prevent against dereferencing nullopt
+  }
+
+  LoadAudioFile(*asset_dir / "audio" / "war_loop.ogg", gSfxloop);
+  LoadAudioFile(*asset_dir / "audio" / "algebra_loop.ogg", gMusicloop);
+}
+
+void InitAudio() {
   gSoloud.init(
     SoLoud::Soloud::CLIP_ROUNDOFF | SoLoud::Soloud::ENABLE_VISUALIZATION);
   gSoloud.setGlobalVolume(0.75);
@@ -143,13 +165,19 @@ int main() {
 
   SetupSpeech();
 
-  gSfxloop.load("../assets/audio/war_loop.ogg");
+  LoadAudioFiles();
+
   gSfxloop.setLooping(1);
-  gMusicloop.load("../assets/audio/algebra_loop.ogg");
   gMusicloop.setLooping(1);
 
   gSfxbus.play(gSfxloop);
   gMusicbus.play(gMusicloop);
+}
+
+}  // namespace
+
+int main() {
+  InitAudio();
 
   soloud::tests::common::Window window({"Mixbusses Demo", 650, 550});
   window.AddRenderable<Content>();

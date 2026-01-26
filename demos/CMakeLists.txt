@@ -1,3 +1,5 @@
+include(cmake/demos_common.cmake)
+
 add_subdirectory(2d)
 add_subdirectory(annex)
 add_subdirectory(enumerate)
