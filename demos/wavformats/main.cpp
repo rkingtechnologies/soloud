@@ -30,6 +30,7 @@ freely, subject to the following restrictions:
 #include <string>
 
 #include "common/asset_manager.h"
+#include "common/simple_window.h"
 #include "common/window.h"
 #include "imgui.h"
 #include "soloud.h"
@@ -88,8 +89,10 @@ void InitAudio() {
     const std::filesystem::path audio_path =
       *asset_dir / "audio" / "wavformats" / filenames[i];
 
-    gWavOk[i] = gWav[i].load(audio_path.string().c_str()) == SoLoud::SO_NO_ERROR;
-    gWavStreamOk[i] = gWavstream[i].load(audio_path.string().c_str()) == SoLoud::SO_NO_ERROR;
+    gWavOk[i] =
+      gWav[i].load(audio_path.string().c_str()) == SoLoud::SO_NO_ERROR;
+    gWavStreamOk[i] =
+      gWavstream[i].load(audio_path.string().c_str()) == SoLoud::SO_NO_ERROR;
   }
 }
 
@@ -159,37 +162,13 @@ void RenderWavFormats() {
   RenderControls();
 }
 
-class Content : public soloud::tests::common::Renderable {
- public:
-  void Render(soloud::tests::common::Window* window) override {
-    static bool running = true;
-
-    ImGuiViewport* viewport = ImGui::GetMainViewport();
-    ImGui::SetNextWindowPos(viewport->Pos);
-    ImGui::SetNextWindowSize(viewport->Size);
-
-    ImGui::Begin("##Wavformats", &running,
-      ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
-        ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
-        ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground |
-        ImGuiWindowFlags_AlwaysAutoResize);
-
-    if (!running) {
-      window->Close();
-    }
-
-    RenderWavFormats();
-
-    ImGui::End();
-  }
-};
-
 }  // namespace
 
 int main() {
   InitAudio();
 
+  SimpleWindow simple_window(RenderWavFormats);
   soloud::tests::common::Window window({"Wavformats Demo", 640, 640});
-  window.AddRenderable<Content>();
+  window.AddRenderable<SimpleWindow>(simple_window);
   window.Run();
 }

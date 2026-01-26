@@ -29,6 +29,7 @@ freely, subject to the following restrictions:
 #include <print>
 
 #include "common/asset_manager.h"
+#include "common/simple_window.h"
 #include "common/window.h"
 #include "imgui.h"
 #include "soloud.h"
@@ -84,32 +85,6 @@ void RenderMixBusses() {
     gSoloud.setVolume(gSfxbusHandle, gSfxvol);
   }
 }
-
-class Content : public soloud::tests::common::Renderable {
-  void Render(soloud::tests::common::Window* window) override final {
-    static bool running = true;
-
-    ImGuiViewport* viewport = ImGui::GetMainViewport();
-    ImGui::SetNextWindowPos(viewport->Pos);
-    ImGui::SetNextWindowSize(viewport->Size);
-
-    const static ImGuiWindowFlags window_flags =
-      ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
-      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
-      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground |
-      ImGuiWindowFlags_AlwaysAutoResize;
-
-    ImGui::Begin("##content", &running, window_flags);
-
-    if (!running) {
-      window->Close();
-    }
-
-    RenderMixBusses();
-
-    ImGui::End();
-  }
-};
 
 void SetupSpeech() {
   gSpeech[0].setText("There is flaky pastry in my volkswagon.");
@@ -179,7 +154,8 @@ void InitAudio() {
 int main() {
   InitAudio();
 
+  SimpleWindow simple_window(RenderMixBusses);
   soloud::tests::common::Window window({"Mixbusses Demo", 650, 550});
-  window.AddRenderable<Content>();
+  window.AddRenderable<SimpleWindow>(simple_window);
   window.Run();
 }

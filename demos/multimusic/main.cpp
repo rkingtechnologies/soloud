@@ -29,6 +29,7 @@ freely, subject to the following restrictions:
 #include <print>
 
 #include "common/asset_manager.h"
+#include "common/simple_window.h"
 #include "common/window.h"
 #include "soloud.h"
 #include "soloud_sfxr.h"
@@ -127,32 +128,6 @@ void RenderMultiMusic() {
   }
 }
 
-class Content : public soloud::tests::common::Renderable {
-  void Render(soloud::tests::common::Window* window) override final {
-    static bool running = true;
-
-    ImGuiViewport* viewport = ImGui::GetMainViewport();
-    ImGui::SetNextWindowPos(viewport->Pos);
-    ImGui::SetNextWindowSize(viewport->Size);
-
-    const static ImGuiWindowFlags window_flags =
-      ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
-      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
-      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground |
-      ImGuiWindowFlags_AlwaysAutoResize;
-
-    ImGui::Begin("##content", &running, window_flags);
-
-    if (!running) {
-      window->Close();
-    }
-
-    RenderMultiMusic();
-
-    ImGui::End();
-  }
-};
-
 void LoadAudioFile(const std::filesystem::path& path, SoLoud::WavStream& wav) {
   if (!std::filesystem::exists(path)) {
     std::println("Could not find audio file: {}", path.string());
@@ -201,7 +176,8 @@ void InitAudio() {
 int main() {
   InitAudio();
 
+  SimpleWindow simple_window(RenderMultiMusic);
   soloud::tests::common::Window window({"Multimusic Demo", 400, 1000});
-  window.AddRenderable<Content>();
+  window.AddRenderable<SimpleWindow>(simple_window);
   window.Run();
 }

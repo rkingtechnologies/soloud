@@ -28,6 +28,7 @@ freely, subject to the following restrictions:
 #include <print>
 
 #include "common/asset_manager.h"
+#include "common/simple_window.h"
 #include "common/window.h"
 #include "imgui.h"
 #include "soloud.h"
@@ -157,31 +158,6 @@ void RenderTedsid() {
   ImGui::SliderFloat("Wet##1", &filter_param0[3], 0, 1);
 }
 
-class Content : public soloud::tests::common::Renderable {
- public:
-  void Render(soloud::tests::common::Window* window) override {
-    static bool running = true;
-
-    ImGuiViewport* viewport = ImGui::GetMainViewport();
-    ImGui::SetNextWindowPos(viewport->Pos);
-    ImGui::SetNextWindowSize(viewport->Size);
-
-    ImGui::Begin("##SpeechFilterDemo", &running,
-      ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
-        ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
-        ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground |
-        ImGuiWindowFlags_AlwaysAutoResize);
-
-    if (!running) {
-      window->Close();
-    }
-
-    RenderTedsid();
-
-    ImGui::End();
-  }
-};
-
 void LoadAudioFile(const std::filesystem::path& path, SoLoud::TedSid& tedsid) {
   if (!std::filesystem::exists(path)) {
     std::println("Could not find audio file: {}", path.string());
@@ -231,8 +207,9 @@ int main() {
 
   SetFilters();
 
+  SimpleWindow simple_window(RenderTedsid);
   soloud::tests::common::Window window({"Tedsid Demo", 640, 720});
-  window.AddRenderable<Content>();
+  window.AddRenderable<SimpleWindow>(simple_window);
   window.Run();
 
   return 0;

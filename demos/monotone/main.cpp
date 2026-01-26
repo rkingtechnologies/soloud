@@ -29,6 +29,7 @@ freely, subject to the following restrictions:
 #include <print>
 
 #include "common/asset_manager.h"
+#include "common/simple_window.h"
 #include "common/window.h"
 #include "soloud.h"
 #include "soloud_biquadresonantfilter.h"
@@ -140,32 +141,6 @@ void RenderMonotone() {
   ImGui::SliderFloat("Wet##1", &filter_param0[3], 0, 1);
 }
 
-class Content : public soloud::tests::common::Renderable {
-  void Render(soloud::tests::common::Window* window) override final {
-    static bool running = true;
-
-    ImGuiViewport* viewport = ImGui::GetMainViewport();
-    ImGui::SetNextWindowPos(viewport->Pos);
-    ImGui::SetNextWindowSize(viewport->Size);
-
-    const static ImGuiWindowFlags window_flags =
-      ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
-      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
-      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground |
-      ImGuiWindowFlags_AlwaysAutoResize;
-
-    ImGui::Begin("##content", &running, window_flags);
-
-    if (!running) {
-      window->Close();
-    }
-
-    RenderMonotone();
-
-    ImGui::End();
-  }
-};
-
 void LoadAudioFile(const std::filesystem::path& path, SoLoud::Monotone& audio) {
   if (!std::filesystem::exists(path)) {
     std::println("Could not find audio file: {}", path.string());
@@ -215,7 +190,8 @@ int main() {
 
   SetFilters();
 
+  SimpleWindow simple_window(RenderMonotone);
   soloud::tests::common::Window window({"Monotone Demo", 550, 850});
-  window.AddRenderable<Content>();
+  window.AddRenderable<SimpleWindow>(simple_window);
   window.Run();
 }

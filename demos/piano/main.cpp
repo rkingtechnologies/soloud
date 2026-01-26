@@ -30,6 +30,7 @@ freely, subject to the following restrictions:
 #include <string>
 
 #include "common/asset_manager.h"
+#include "common/simple_window.h"
 #include "common/window.h"
 #include "imgui.h"
 #include "rt_midi.h"
@@ -407,36 +408,14 @@ void SetupFilters() {
   g_filter[10] = new SoLoud::EqFilter;
 }
 
-class Content : public soloud::tests::common::Renderable {
-  void Render(soloud::tests::common::Window* window) override final {
-    static bool running = true;
-
-    ImGuiViewport* viewport = ImGui::GetMainViewport();
-    ImGui::SetNextWindowPos(viewport->Pos);
-    ImGui::SetNextWindowSize(viewport->Size);
-
-    const static ImGuiWindowFlags window_flags =
-      ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
-      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
-      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground |
-      ImGuiWindowFlags_AlwaysAutoResize;
-
-    ImGui::Begin("##Piano Demo", &running, window_flags);
-
-    if (!running) {
-      window->Close();
-    }
-
-    SetSoloudFilterParams();
-    HandleKeys();
-    RenderSynthEngineSelector();
-    RenderInfoWindow();
-    RenderFilterWindow();
-    RenderSelectedSynthEngine();
-
-    ImGui::End();
-  }
-};
+void RenderPianoDemo() {
+  SetSoloudFilterParams();
+  HandleKeys();
+  RenderSynthEngineSelector();
+  RenderInfoWindow();
+  RenderFilterWindow();
+  RenderSelectedSynthEngine();
+}
 
 }  // namespace
 
@@ -446,7 +425,8 @@ int main() {
   SetupFilters();
 
   // Window Setup
+  SimpleWindow simple_window(RenderPianoDemo);
   soloud::tests::common::Window window({"Piano Demo", 640, 1000});
-  window.AddRenderable<Content>();
+  window.AddRenderable<SimpleWindow>(simple_window);
   window.Run();
 }

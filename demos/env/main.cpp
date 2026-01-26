@@ -25,6 +25,7 @@ freely, subject to the following restrictions:
 #include <print>
 
 #include "common/asset_manager.h"
+#include "common/simple_window.h"
 #include "common/window.h"
 #include "imgui.h"
 #include "soloud.h"
@@ -180,7 +181,7 @@ const char* GetDescription(float p) {
   return "On the rooftop - windy night, quiet music";
 }
 
-void RenderSoloud() {
+void RenderEnvDemo() {
   float p = UpdateAudio();
   const char* const description = GetDescription(p);
 
@@ -206,41 +207,8 @@ void RenderSoloud() {
   ImGui::Text("Description: %s", description);
 }
 
-class Content : public soloud::tests::common::Renderable {
-  void Render(soloud::tests::common::Window* window) override final {
-    static bool running = true;
-
-    ImGuiViewport* viewport = ImGui::GetMainViewport();
-    ImGui::SetNextWindowPos(viewport->Pos);
-    ImGui::SetNextWindowSize(viewport->Size);
-
-    const static ImGuiWindowFlags window_flags =
-      ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
-      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
-      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground |
-      ImGuiWindowFlags_AlwaysAutoResize;
-
-    ImGui::Begin("##Environmental Sound Demo", &running, window_flags);
-
-    if (!running) {
-      window->Close();
-    }
-
-    RenderSoloud();
-
-    ImGuiIO& io = ImGui::GetIO();
-
-    ImGui::Separator();
-
-    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
-      1000.0f / io.Framerate, io.Framerate);
-
-    ImGui::End();
-  }
-};
-
 void LoadAudioFile(const std::filesystem::path& path, SoLoud::Wav& wav) {
-   if (!std::filesystem::exists(path)) {
+  if (!std::filesystem::exists(path)) {
     std::println("Could not find audio file: {}", path.string());
     return;
   }
@@ -272,7 +240,7 @@ void InitAudio() {
   rain.setLooping(1);
   wind.setLooping(1);
   music.setLooping(1);
-  
+
   lp_filter.setParams(SoLoud::BiquadResonantFilter::LOWPASS, 100, 10);
   music.setFilter(0, &lp_filter);
 
@@ -285,8 +253,8 @@ void InitAudio() {
 
 int main() {
   InitAudio();
-
+  SimpleWindow simple_window(RenderEnvDemo);
   soloud::tests::common::Window window({"Environmental Sound Demo", 640, 640});
-  window.AddRenderable<Content>();
+  window.AddRenderable<SimpleWindow>(simple_window);
   window.Run();
 }

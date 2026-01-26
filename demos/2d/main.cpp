@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "common/simple_window.h"
 #include "common/window.h"
 #include "imgui.h"
 #include "soloud.h"
@@ -136,32 +137,6 @@ void Render2D() {
   ImGui::EndChild();
 }
 
-class Content : public soloud::tests::common::Renderable {
-  void Render(soloud::tests::common::Window* window) override final {
-    static bool running = true;
-
-    ImGuiViewport* viewport = ImGui::GetMainViewport();
-    ImGui::SetNextWindowPos(viewport->Pos);
-    ImGui::SetNextWindowSize(viewport->Size);
-
-    const static ImGuiWindowFlags window_flags =
-      ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
-      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
-      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground |
-      ImGuiWindowFlags_AlwaysAutoResize;
-
-    ImGui::Begin("##content", &running, window_flags);
-
-    if (!running) {
-      window->Close();
-    }
-
-    Render2D();
-
-    ImGui::End();
-  }
-};
-
 void InitAudio() {
   gSoloud.init(
     SoLoud::Soloud::CLIP_ROUNDOFF | SoLoud::Soloud::ENABLE_VISUALIZATION);
@@ -192,8 +167,8 @@ void InitAudio() {
 
 int main() {
   InitAudio();
-
+  SimpleWindow simple_window(Render2D);
   soloud::tests::common::Window window({"2D Demo", 800, 600});
-  window.AddRenderable<Content>();
+  window.AddRenderable<SimpleWindow>(simple_window);
   window.Run();
 }

@@ -26,6 +26,7 @@ freely, subject to the following restrictions:
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "common/simple_window.h"
 #include "common/window.h"
 #include "imgui.h"
 #include "soloud.h"
@@ -83,7 +84,6 @@ void SetFilters() {
 }
 
 void RenderSpeechfilterUI() {
-
   SetFilters();
 
   float* buf = gSoloud.getWave();
@@ -229,41 +229,16 @@ void InitAudio() {
   InitSpeech();
 }
 
-class Content : public soloud::tests::common::Renderable {
- public:
-  void Render(soloud::tests::common::Window* window) override {
-    static bool running = true;
-
-    ImGuiViewport* viewport = ImGui::GetMainViewport();
-    ImGui::SetNextWindowPos(viewport->Pos);
-    ImGui::SetNextWindowSize(viewport->Size);
-
-    ImGui::Begin("##SpeechFilterDemo", &running,
-      ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
-        ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
-        ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground |
-        ImGuiWindowFlags_AlwaysAutoResize);
-
-    if (!running) {
-      window->Close();
-    }
-
-    RenderSpeechfilterUI();
-
-    ImGui::End();
-  }
-};
-
 }  // namespace
 
 int main() {
-
   InitAudio();
 
   SetFilters();
 
+  SimpleWindow simpel_window(RenderSpeechfilterUI);
   soloud::tests::common::Window window({"Speech + Filter Demo", 640, 720});
-  window.AddRenderable<Content>();
+  window.AddRenderable<SimpleWindow>(simpel_window);
   window.Run();
 
   return 0;

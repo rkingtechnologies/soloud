@@ -29,6 +29,7 @@ freely, subject to the following restrictions:
 #include <print>
 
 #include "common/asset_manager.h"
+#include "common/simple_window.h"
 #include "common/window.h"
 #include "imgui.h"
 #include "soloud.h"
@@ -217,37 +218,13 @@ void InitAudio() {
   gRadioSet.setAck(gPhrase[11], gPhrase[11].mSampleCount);
 }
 
-class Content : public soloud::tests::common::Renderable {
- public:
-  void Render(soloud::tests::common::Window* window) override {
-    static bool running = true;
-
-    ImGuiViewport* viewport = ImGui::GetMainViewport();
-    ImGui::SetNextWindowPos(viewport->Pos);
-    ImGui::SetNextWindowSize(viewport->Size);
-
-    ImGui::Begin("##SpeechFilterDemo", &running,
-      ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
-        ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
-        ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground |
-        ImGuiWindowFlags_AlwaysAutoResize);
-
-    if (!running) {
-      window->Close();
-    }
-
-    RenderTheButton();
-
-    ImGui::End();
-  }
-};
-
 }  // namespace
 
 int main() {
   InitAudio();
 
+  SimpleWindow simple_window(RenderTheButton);
   soloud::tests::common::Window window({"The Button Demo", 640, 720});
-  window.AddRenderable<Content>();
+  window.AddRenderable<SimpleWindow>(simple_window);
   window.Run();
 }
